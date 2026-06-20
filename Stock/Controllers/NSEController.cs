@@ -16,7 +16,7 @@ namespace Stock.Controllers
         /// <returns>List of indices grouped by category</returns>
         /// <response code="200">Success</response>
         /// <response code="500">NSE API unreachable</response>
-        [HttpGet("all")]
+        [HttpGet("allIndices")]
         [ProducesResponseType(typeof(IndicesResponse), 200)]
         [ProducesResponseType(500)]
         public async Task<IActionResult> GetAllIndices() => Ok(await _nSEService.GetAllIndices());

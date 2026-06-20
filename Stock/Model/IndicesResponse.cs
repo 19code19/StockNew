@@ -6,18 +6,6 @@ namespace Stock.Model
     {
         [JsonPropertyName("data")]
         public List<IndexData> Data { get; set; } = new();
-
-        [JsonPropertyName("timestamp")]
-        public string Timestamp { get; set; } = string.Empty;
-
-        [JsonPropertyName("advances")]
-        public int Advances { get; set; }
-
-        [JsonPropertyName("declines")]
-        public int Declines { get; set; }
-
-        [JsonPropertyName("unchanged")]
-        public int Unchanged { get; set; }
     }
 
     public class IndexData
