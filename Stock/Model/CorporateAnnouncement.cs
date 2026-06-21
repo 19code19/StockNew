@@ -3,7 +3,7 @@
 namespace Stock.Model
 {
     // Model
-    public class CorpAnnouncement
+    public class CorporateAnnouncement
     {
         [JsonPropertyName("symbol")]
         public string Symbol { get; set; } = string.Empty;
@@ -69,6 +69,6 @@ namespace Stock.Model
     public class CorpAnnouncementResult
     {
         public string Symbol { get; set; } = string.Empty;
-        public List<CorpAnnouncement>? Data { get; set; }
+        public List<CorporateAnnouncement>? Data { get; set; }
     }
 }

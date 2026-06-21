@@ -242,11 +242,11 @@ namespace Stock.Service
         public async Task<CorpAnnouncementResult> GetCorpAnnouncements(string symbol, string marketApiType = "equities", int noOfRecords = 6)
         {
             var endpoint = "NextApi/apiClient/GetQuoteApi" +
-                $"?functionName=getCorpAnnouncement&symbol={Uri.EscapeDataString(symbol)}" +
+                $"?functionName=getCorporateAnnouncement&symbol={Uri.EscapeDataString(symbol)}" +
                 $"&marketApiType={Uri.EscapeDataString(marketApiType)}" +
                 $"&noOfRecords={noOfRecords}";
 
-            var result = await GetDataAsync<List<CorpAnnouncement>>(endpoint);
+            var result = await GetDataAsync<List<CorporateAnnouncement>>(endpoint);
 
             return new CorpAnnouncementResult
             {
@@ -254,6 +254,7 @@ namespace Stock.Service
                 Data = result
             };
         }
+
 
         private async Task<T?> GetDataAsync<T>(string endpoint)
         {
