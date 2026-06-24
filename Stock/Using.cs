@@ -1,0 +1,12 @@
+﻿global using Microsoft.AspNetCore.Mvc;
+global using Stock.Model;
+global using Stock.Service;
+global using CsvHelper;
+global using CsvHelper.Configuration;
+global using System.Globalization;
+global using CsvHelper.TypeConversion;
+global using Microsoft.OpenApi;
+global using System.Reflection;
+global using System.Text.Json.Serialization;
+global using CsvHelper.Configuration.Attributes;
+global using Stock.Helpers;

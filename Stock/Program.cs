@@ -1,12 +1,9 @@
-using Microsoft.OpenApi;
-using Stock.Service;
-using System.Reflection;
-
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
-builder.Services.AddHttpClient<NSEService>();
+builder.Services.AddTransient<NSEService>();
+builder.Services.AddTransient<NSEDataService>();
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>

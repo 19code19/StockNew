@@ -45,5 +45,11 @@ namespace Stock.Model
     {
         public string Symbol { get; set; } = string.Empty;
         public List<CorpEventCalendar>? Data { get; set; }
+
+        public CorpEventCalendarResult(string symbol, List<CorpEventCalendar>? data)
+        {
+            Data = data;
+            Symbol = symbol;
+        }
     }
 }

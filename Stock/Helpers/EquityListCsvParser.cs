@@ -1,24 +1,18 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
-using Stock.Model;
-using System.Globalization;
+﻿namespace Stock.Helpers;
 
-namespace Stock.Helpers
+public static class EquityListCsvParser
 {
-    public static class EquityListCsvParser
+    public static List<EquityListing> Parse(string csvContent)
     {
-        public static List<EquityListing> Parse(string csvContent)
+        using var reader = new StringReader(csvContent);
+
+        var config = new CsvConfiguration(CultureInfo.InvariantCulture)
         {
-            using var reader = new StringReader(csvContent);
+            PrepareHeaderForMatch = args => args.Header.Trim().ToUpperInvariant(),
+            TrimOptions = TrimOptions.Trim
+        };
 
-            var config = new CsvConfiguration(CultureInfo.InvariantCulture)
-            {
-                PrepareHeaderForMatch = args => args.Header.Trim().ToUpperInvariant(),
-                TrimOptions = TrimOptions.Trim
-            };
-
-            using var csv = new CsvReader(reader, config);
-            return csv.GetRecords<EquityListing>().ToList();
-        }
+        using var csv = new CsvReader(reader, config);
+        return csv.GetRecords<EquityListing>().ToList();
     }
 }

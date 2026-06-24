@@ -1,20 +1,14 @@
-﻿using CsvHelper;
-using CsvHelper.Configuration;
-using CsvHelper.TypeConversion;
-using System.Globalization;
+﻿namespace Stock.Helpers;
 
-namespace Stock.Helpers
+public class EquityListingDateConverter : DateTimeConverter
 {
-    public class EquityListingDateConverter : DateTimeConverter
+    public override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
     {
-        public override object? ConvertFromString(string? text, IReaderRow row, MemberMapData memberMapData)
-        {
-            if (string.IsNullOrWhiteSpace(text)) return null;
+        if (string.IsNullOrWhiteSpace(text)) return null;
 
-            return DateTime.TryParseExact(text.Trim(), "dd-MMM-yy",
-                CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)
-                ? date
-                : null;
-        }
+        return DateTime.TryParseExact(text.Trim(), "dd-MMM-yy",
+            CultureInfo.InvariantCulture, DateTimeStyles.None, out var date)
+            ? date
+            : null;
     }
 }

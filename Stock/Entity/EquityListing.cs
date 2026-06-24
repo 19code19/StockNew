@@ -1,21 +1,20 @@
-﻿namespace Stock.Entity
+﻿namespace Stock.Entity;
+
+public class EquityListing
 {
-    public class EquityListing
-    {
-        public string Symbol { get; set; } = string.Empty;
+    public string Symbol { get; set; } = string.Empty;
 
-        public string NameOfCompany { get; set; } = string.Empty;
+    public string NameOfCompany { get; set; } = string.Empty;
 
-        public string Series { get; set; } = string.Empty;
+    public string Series { get; set; } = string.Empty;
 
-        public DateTime? DateOfListing { get; set; }
+    public DateTime? DateOfListing { get; set; }
 
-        public decimal PaidUpValue { get; set; }
+    public decimal PaidUpValue { get; set; }
 
-        public int MarketLot { get; set; }
+    public int MarketLot { get; set; }
 
-        public string ISINNumber { get; set; } = string.Empty;
+    public string ISINNumber { get; set; } = string.Empty;
 
-        public decimal FaceValue { get; set; }
-    }
+    public decimal FaceValue { get; set; }
 }
