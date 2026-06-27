@@ -10,3 +10,4 @@ global using System.Reflection;
 global using System.Text.Json.Serialization;
 global using CsvHelper.Configuration.Attributes;
 global using Stock.Helpers;
+global using Stock.Repository;

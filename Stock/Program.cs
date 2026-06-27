@@ -1,9 +1,16 @@
+using Microsoft.EntityFrameworkCore;
+using Stock.Data;
+
 var builder = WebApplication.CreateBuilder(args);
 
 builder.Services.AddControllers();
 
+builder.Services.AddHttpClient<NSEDataService>();
 builder.Services.AddTransient<NSEService>();
-builder.Services.AddTransient<NSEDataService>();
+builder.Services.AddScoped<IStockRepository, StockRepository>();
+
+builder.Services.AddDbContext<StockDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
 builder.Services.AddEndpointsApiExplorer();
 builder.Services.AddSwaggerGen(options =>
@@ -21,6 +28,12 @@ builder.Services.AddSwaggerGen(options =>
 });
 
 var app = builder.Build();
+
+using (var scope = app.Services.CreateScope())
+{
+    var dbContext = scope.ServiceProvider.GetRequiredService<StockDbContext>();
+    dbContext.Database.EnsureCreated();
+}
 
 if (app.Environment.IsDevelopment())
 {
