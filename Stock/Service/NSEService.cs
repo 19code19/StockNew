@@ -11,16 +11,17 @@ public class NSEService
         _stockRepository = stockRepository;
     }
 
-    public async Task<IndicesResponse?> GetAllIndices()
+    public async Task<int> SaveAllIndices()
     {
         var data = await _nSEDataService.GetAllIndices();
-        return data;
+        return await _stockRepository.SaveAllIndicesAsync(data?.Data ?? []);
     }
 
     public async Task<int> SaveEquityList()
     {
         var data = await _nSEDataService.GetEquityList();
-        return await _stockRepository.SaveEquityListingsAsync(data);
+        var entities = data.Select(x => Stock.Helpers.Mapper.ToEntity<Stock.Model.EquityListing, Stock.Entity.EquityListing>(x)).ToList();
+        return await _stockRepository.SaveEquityListingsAsync(entities);
     }
 
     public async Task<int> SaveSymbolData()
@@ -42,7 +43,8 @@ public class NSEService
         var results = await ProcessInBatchesAsync(symbols, async symbol =>
         {
             var result = await _nSEDataService.GetYearwiseData(symbol);
-            return await _stockRepository.SaveYearwiseDataAsync(result.Data ?? [], result.Symbol);
+            var entities = (result.Data ?? []).Select(x => Stock.Helpers.Mapper.ToEntity<Stock.Model.YearwiseData, Stock.Entity.YearwiseData>(x)).ToList();
+            return await _stockRepository.SaveYearwiseDataAsync(entities, result.Symbol);
         });
 
         return results.Sum();

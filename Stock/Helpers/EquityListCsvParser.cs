@@ -2,7 +2,7 @@
 
 public static class EquityListCsvParser
 {
-    public static List<EquityListing> Parse(string csvContent)
+    public static List<Stock.Model.EquityListing> Parse(string csvContent)
     {
         using var reader = new StringReader(csvContent);
 
@@ -13,6 +13,6 @@ public static class EquityListCsvParser
         };
 
         using var csv = new CsvReader(reader, config);
-        return csv.GetRecords<EquityListing>().ToList();
+        return csv.GetRecords<Stock.Model.EquityListing>().ToList();
     }
 }

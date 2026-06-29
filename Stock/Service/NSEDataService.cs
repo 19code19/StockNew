@@ -20,9 +20,13 @@ public class NSEDataService
 
     public async Task<IndicesResponse?> GetAllIndices() =>  await GetDataAsync<IndicesResponse>("allIndices");
 
-    public async Task<List<EquityListing>> GetEquityList()
+    public async Task<List<Stock.Model.EquityListing>> GetEquityList()
     {
         var csvContent = await GetRawContentAsync(EquityListUrl);
+        if (string.IsNullOrWhiteSpace(csvContent))
+        {
+            return new List<Stock.Model.EquityListing>();
+        }
         return EquityListCsvParser.Parse(csvContent);
     }
 
@@ -42,7 +46,7 @@ public class NSEDataService
     public async Task<YearwiseDataBatchResult> GetYearwiseData(string symbol)
     {
         var endpoint = $"NextApi/apiClient/GetQuoteApi?functionName=getYearwiseData&symbol={Uri.EscapeDataString(symbol)}";
-        var result = await GetDataAsync<List<YearwiseData>>(endpoint);
+        var result = await GetDataAsync<List<Stock.Model.YearwiseData>>(endpoint);
         return new YearwiseDataBatchResult(symbol, result);
     }
 
@@ -153,21 +157,35 @@ public class NSEDataService
 
     private async Task<T?> GetDataAsync<T>(string endpoint)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
-        using var response = await _httpClient.SendAsync(request,
-            HttpCompletionOption.ResponseHeadersRead);
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, endpoint);
+            using var response = await _httpClient.SendAsync(request,
+                HttpCompletionOption.ResponseHeadersRead);
 
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadFromJsonAsync<T>();
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadFromJsonAsync<T>();
+        }
+        catch
+        {
+            return default;
+        }
     }
 
     private async Task<string> GetRawContentAsync(string absoluteUrl)
     {
-        using var request = new HttpRequestMessage(HttpMethod.Get, absoluteUrl);
-        using var response = await _httpClient.SendAsync(request,
-            HttpCompletionOption.ResponseHeadersRead);
+        try
+        {
+            using var request = new HttpRequestMessage(HttpMethod.Get, absoluteUrl);
+            using var response = await _httpClient.SendAsync(request,
+                HttpCompletionOption.ResponseHeadersRead);
 
-        response.EnsureSuccessStatusCode();
-        return await response.Content.ReadAsStringAsync();
+            response.EnsureSuccessStatusCode();
+            return await response.Content.ReadAsStringAsync();
+        }
+        catch
+        {
+            return string.Empty;
+        }
     }
 }

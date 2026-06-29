@@ -8,6 +8,9 @@ public class StockDbContext(DbContextOptions<StockDbContext> options) : DbContex
 
     public DbSet<IndicesEntity> Indices => Set<IndicesEntity>();
 
+    // Separate table for full allIndices payload
+    public DbSet<AllIndicesEntity> AllIndices => Set<AllIndicesEntity>();
+
     public DbSet<SymbolDataEntity> SymbolDataEntities => Set<SymbolDataEntity>();
 
     public DbSet<EquitySymbolDataEntity> EquitySymbolDataEntities => Set<EquitySymbolDataEntity>();

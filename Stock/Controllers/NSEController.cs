@@ -7,15 +7,20 @@ public class NSEController(NSEService nSEService) : ControllerBase
     private readonly NSEService _nSEService = nSEService;
 
     /// <summary>
-    /// Returns all NSE indices
+    /// Fetches all NSE indices and saves them into the AllIndices table
     /// </summary>
-    /// <returns>List of indices grouped by category</returns>
-    /// <response code="200">Success</response>
-    /// <response code="500">NSE API unreachable</response>
-    [HttpGet("allIndices")]
-    [ProducesResponseType(typeof(IndicesResponse), 200)]
+    /// <remarks>
+    /// Calls the NSE API to retrieve the full set of indices then persists
+    /// the payload into the AllIndices table. Returns the number of records
+    /// inserted or updated.
+    /// </remarks>
+    /// <returns>Number of indices inserted or updated</returns>
+    /// <response code="200">Success - returns count</response>
+    /// <response code="500">NSE API unreachable or save failed</response>
+    [HttpPost("allIndices")]
+    [ProducesResponseType(typeof(int), 200)]
     [ProducesResponseType(500)]
-    public async Task<IActionResult> GetAllIndices() => Ok(await _nSEService.GetAllIndices());
+    public async Task<IActionResult> SaveAllIndices() => Ok(await _nSEService.SaveAllIndices());
 
     /// <summary>
     /// Fetches and persists the full list of equities listed on NSE

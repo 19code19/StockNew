@@ -19,9 +19,9 @@ public class StockRepository(StockDbContext context) : IStockRepository
             .ToListAsync();
     }
 
-    public async Task<int> SaveEquityListingsAsync(IEnumerable<EquityListing> listings)
+    public async Task<int> SaveEquityListingsAsync(IEnumerable<Stock.Entity.EquityListing> listings)
     {
-        var entities = listings.Select(x => Mapper.ToEntity<EquityListing, EquityListingEntity>(x)).ToList();
+        var entities = listings.Select(x => Stock.Helpers.Mapper.ToEntity<Stock.Entity.EquityListing, EquityListingEntity>(x)).ToList();
         _context.EquityListings.RemoveRange(_context.EquityListings);
         await _context.EquityListings.AddRangeAsync(entities);
         return await _context.SaveChangesAsync();
@@ -35,7 +35,7 @@ public class StockRepository(StockDbContext context) : IStockRepository
         }
 
         // Map and save main SymbolDataEntity as before
-        var entity = Mapper.ToEntity<SymbolDataResponse, SymbolDataEntity>(response);
+        var entity = Stock.Helpers.Mapper.ToEntity<SymbolDataResponse, SymbolDataEntity>(response);
         entity.Symbol = response.Symbol;
         entity.Series = response.Series;
         entity.MarketType = response.MarketType;
@@ -55,35 +55,35 @@ public class StockRepository(StockDbContext context) : IStockRepository
         {
             if (equity.OrderBook is not null)
             {
-                var ob = Mapper.ToEntity<OrderBook, OrderBookEntity>(equity.OrderBook);
+                var ob = Stock.Helpers.Mapper.ToEntity<Stock.Model.OrderBook, OrderBookEntity>(equity.OrderBook);
                 ob.Symbol = response.Symbol;
                 await _context.OrderBookEntities.AddAsync(ob);
             }
 
             if (equity.MetaData is not null)
             {
-                var md = Mapper.ToEntity<MetaData, MetaDataEntity>(equity.MetaData);
+                var md = Stock.Helpers.Mapper.ToEntity<Stock.Model.MetaData, MetaDataEntity>(equity.MetaData);
                 md.Symbol = response.Symbol;
                 await _context.MetaDataEntities.AddAsync(md);
             }
 
             if (equity.TradeInfo is not null)
             {
-                var ti = Mapper.ToEntity<TradeInfo, TradeInfoEntity>(equity.TradeInfo);
+                var ti = Stock.Helpers.Mapper.ToEntity<Stock.Model.TradeInfo, TradeInfoEntity>(equity.TradeInfo);
                 ti.Symbol = response.Symbol;
                 await _context.TradeInfoEntities.AddAsync(ti);
             }
 
             if (equity.PriceInfo is not null)
             {
-                var pi = Mapper.ToEntity<PriceInfo, PriceInfoEntity>(equity.PriceInfo);
+                var pi = Stock.Helpers.Mapper.ToEntity<Stock.Model.PriceInfo, PriceInfoEntity>(equity.PriceInfo);
                 pi.Symbol = response.Symbol;
                 await _context.PriceInfoEntities.AddAsync(pi);
             }
 
             if (equity.SecInfo is not null)
             {
-                var si = Mapper.ToEntity<SecInfo, SecInfoEntity>(equity.SecInfo);
+                var si = Stock.Helpers.Mapper.ToEntity<Stock.Model.SecInfo, SecInfoEntity>(equity.SecInfo);
                 si.Symbol = response.Symbol;
                 if (equity.SecInfo.IndexList is not null && equity.SecInfo.IndexList.Any())
                 {
@@ -98,9 +98,9 @@ public class StockRepository(StockDbContext context) : IStockRepository
         return response;
     }
 
-    public async Task<int> SaveYearwiseDataAsync(IEnumerable<YearwiseData> data, string symbol)
+    public async Task<int> SaveYearwiseDataAsync(IEnumerable<Stock.Entity.YearwiseData> data, string symbol)
     {
-        var entities = data.Select(x => Mapper.ToEntity<YearwiseData, YearwiseDataEntity>(x)).ToList();
+        var entities = data.Select(x => Stock.Helpers.Mapper.ToEntity<Stock.Entity.YearwiseData, YearwiseDataEntity>(x)).ToList();
         foreach (var entity in entities)
         {
             entity.Symbol = symbol;
@@ -113,7 +113,7 @@ public class StockRepository(StockDbContext context) : IStockRepository
 
     public async Task<int> SaveHistoricalTradeDataAsync(IEnumerable<HistoricalTradeData> data, string symbol)
     {
-        var entities = data.Select(x => Mapper.ToEntity<HistoricalTradeData, HistoricalTradeDataEntity>(x)).ToList();
+        var entities = data.Select(x => Stock.Helpers.Mapper.ToEntity<HistoricalTradeData, HistoricalTradeDataEntity>(x)).ToList();
         foreach (var entity in entities)
         {
             entity.Symbol = symbol;
@@ -126,9 +126,17 @@ public class StockRepository(StockDbContext context) : IStockRepository
 
     public async Task<int> SaveIndexDataAsync(IEnumerable<IndexData> data)
     {
-        var entities = data.Select(x => Mapper.ToEntity<IndexData, IndexDataEntity>(x)).ToList();
+        var entities = data.Select(x => Stock.Helpers.Mapper.ToEntity<IndexData, IndexDataEntity>(x)).ToList();
         _context.IndexDataEntities.RemoveRange(_context.IndexDataEntities);
         await _context.IndexDataEntities.AddRangeAsync(entities);
+        return await _context.SaveChangesAsync();
+    }
+
+    public async Task<int> SaveAllIndicesAsync(IEnumerable<IndicesData> data)
+    {
+        var entities = data.Select(x => Stock.Helpers.Mapper.ToEntity<IndicesData, AllIndicesEntity>(x)).ToList();
+        _context.AllIndices.RemoveRange(_context.AllIndices);
+        await _context.AllIndices.AddRangeAsync(entities);
         return await _context.SaveChangesAsync();
     }
 
@@ -142,7 +150,7 @@ public class StockRepository(StockDbContext context) : IStockRepository
         _context.ShareholdingPatternEntries.RemoveRange(_context.ShareholdingPatternEntries.Where(x => x.Symbol == symbol));
         foreach (var item in data)
         {
-            var entity = Mapper.ToEntity<ShareholdingPatternEntry, ShareholdingPatternEntryEntity>(item.Value);
+            var entity = Stock.Helpers.Mapper.ToEntity<ShareholdingPatternEntry, ShareholdingPatternEntryEntity>(item.Value);
             entity.Symbol = symbol;
             entity.CategoryName = item.Key;
             await _context.ShareholdingPatternEntries.AddAsync(entity);
@@ -161,7 +169,7 @@ public class StockRepository(StockDbContext context) : IStockRepository
         _context.PeerComparisonDataEntities.RemoveRange(_context.PeerComparisonDataEntities.Where(x => x.Symbol == symbol && x.Quarter == quarter));
         foreach (var item in data)
         {
-            var entity = Mapper.ToEntity<PeerComparisonData, PeerComparisonDataEntity>(item);
+            var entity = Stock.Helpers.Mapper.ToEntity<PeerComparisonData, PeerComparisonDataEntity>(item);
             entity.Symbol = symbol;
             entity.Quarter = quarter;
             await _context.PeerComparisonDataEntities.AddAsync(entity);
