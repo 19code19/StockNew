@@ -2,7 +2,7 @@ namespace Stock.Data;
 
 public class HistoricalTradeDataEntity
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     public string Symbol { get; set; } = string.Empty;
     public decimal Ch52WeekHighPrice { get; set; }
     public decimal Ch52WeekLowPrice { get; set; }

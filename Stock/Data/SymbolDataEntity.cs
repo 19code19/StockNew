@@ -2,7 +2,7 @@ namespace Stock.Data;
 
 public class SymbolDataEntity
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     public string Symbol { get; set; } = string.Empty;
     public string Series { get; set; } = string.Empty;
     public string MarketType { get; set; } = string.Empty;

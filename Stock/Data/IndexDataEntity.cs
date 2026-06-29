@@ -2,7 +2,7 @@ namespace Stock.Data;
 
 public class IndexDataEntity
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     public string IndexName { get; set; } = string.Empty;
     public decimal Open { get; set; }
     public decimal High { get; set; }

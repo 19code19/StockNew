@@ -2,7 +2,7 @@ namespace Stock.Data;
 
 public class YearwiseDataEntity
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     public string Symbol { get; set; } = string.Empty;
     public decimal YesterdayChangePercent { get; set; }
     public decimal OneWeekChangePercent { get; set; }

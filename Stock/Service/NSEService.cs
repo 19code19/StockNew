@@ -29,7 +29,8 @@ public class NSEService
         var results = await ProcessInBatchesAsync(symbols, async symbol =>
         {
             var result = await _nSEDataService.GetSymbolData(symbol);
-            return await _stockRepository.SaveSymbolDataAsync(result);
+            var saved = await _stockRepository.SaveSymbolDataAsync(result);
+            return saved is null ? 0 : 1;
         });
 
         return results.Sum();
@@ -165,13 +166,9 @@ public class NSEService
 
     #region Private Helpers
 
-    private async Task<List<TResult>> ProcessInBatchesAsync<TResult>(
-        IReadOnlyList<string> symbols,
-        Func<string, Task<TResult>> processor,
-        int batchSize = 50)
+    private async Task<List<TResult>> ProcessInBatchesAsync<TResult>(IReadOnlyList<string> symbols,  Func<string, Task<TResult>> processor, int batchSize = 50)
     {
         var results = new List<TResult>();
-
         for (var index = 0; index < symbols.Count; index += batchSize)
         {
             var batch = symbols.Skip(index).Take(batchSize).ToList();

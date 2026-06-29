@@ -2,7 +2,10 @@ namespace Stock.Data;
 
 public class OrderBookEntity
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
+    // added Symbol for direct queries by symbol
+    public string Symbol { get; set; } = string.Empty;
+
     public decimal BuyPrice1 { get; set; }
     public long BuyQuantity1 { get; set; }
     public decimal BuyPrice2 { get; set; }

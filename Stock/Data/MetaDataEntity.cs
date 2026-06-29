@@ -2,7 +2,7 @@ namespace Stock.Data;
 
 public class MetaDataEntity
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     public string Identifier { get; set; } = string.Empty;
     public string CompanyName { get; set; } = string.Empty;
     public string IsinCode { get; set; } = string.Empty;

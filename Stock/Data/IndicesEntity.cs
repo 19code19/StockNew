@@ -2,7 +2,7 @@ namespace Stock.Data;
 
 public class IndicesEntity
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
     public string Key { get; set; } = string.Empty;
     public string Index { get; set; } = string.Empty;
     public string IndexSymbol { get; set; } = string.Empty;

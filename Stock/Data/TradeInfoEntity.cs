@@ -2,7 +2,9 @@ namespace Stock.Data;
 
 public class TradeInfoEntity
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Symbol { get; set; } = string.Empty;
+
     public long TotalTradedVolume { get; set; }
     public decimal TotalTradedValue { get; set; }
     public string Series { get; set; } = string.Empty;

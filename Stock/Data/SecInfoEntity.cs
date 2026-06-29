@@ -2,7 +2,9 @@ namespace Stock.Data;
 
 public class SecInfoEntity
 {
-    public int Id { get; set; }
+    public Guid Id { get; set; } = Guid.NewGuid();
+    public string Symbol { get; set; } = string.Empty;
+
     public string SecStatus { get; set; } = string.Empty;
     public string ListingDate { get; set; } = string.Empty;
     public string PdSectorInd { get; set; } = string.Empty;

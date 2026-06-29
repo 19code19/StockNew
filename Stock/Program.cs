@@ -32,7 +32,8 @@ var app = builder.Build();
 using (var scope = app.Services.CreateScope())
 {
     var dbContext = scope.ServiceProvider.GetRequiredService<StockDbContext>();
-    dbContext.Database.EnsureCreated();
+    // Apply any pending EF Core migrations at startup so Update-Database is not required
+    dbContext.Database.Migrate();
 }
 
 if (app.Environment.IsDevelopment())

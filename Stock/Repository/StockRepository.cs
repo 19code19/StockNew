@@ -19,29 +19,88 @@ public class StockRepository(StockDbContext context) : IStockRepository
             .ToListAsync();
     }
 
-    public async Task<int> SaveEquityListingsAsync(IEnumerable<Stock.Model.EquityListing> listings)
+    public async Task<int> SaveEquityListingsAsync(IEnumerable<EquityListing> listings)
     {
-        var entities = listings.Select(x => Mapper.ToEntity<Stock.Model.EquityListing, EquityListingEntity>(x)).ToList();
+        var entities = listings.Select(x => Mapper.ToEntity<EquityListing, EquityListingEntity>(x)).ToList();
         _context.EquityListings.RemoveRange(_context.EquityListings);
         await _context.EquityListings.AddRangeAsync(entities);
         return await _context.SaveChangesAsync();
     }
 
-    public async Task<int> SaveSymbolDataAsync(Stock.Model.SymbolDataResponse response)
+    public async Task<SymbolDataResponse?> SaveSymbolDataAsync(SymbolDataResponse response)
     {
-        var entity = Mapper.ToEntity<Stock.Model.SymbolDataResponse, SymbolDataEntity>(response);
+        if (response is null)
+        {
+            return null;
+        }
+
+        // Map and save main SymbolDataEntity as before
+        var entity = Mapper.ToEntity<SymbolDataResponse, SymbolDataEntity>(response);
         entity.Symbol = response.Symbol;
         entity.Series = response.Series;
         entity.MarketType = response.MarketType;
 
         _context.SymbolDataEntities.RemoveRange(_context.SymbolDataEntities.Where(x => x.Symbol == response.Symbol));
         await _context.SymbolDataEntities.AddAsync(entity);
-        return await _context.SaveChangesAsync();
+
+        // Remove previous split-detail entries for this symbol
+        _context.OrderBookEntities.RemoveRange(_context.OrderBookEntities.Where(x => x.Symbol == response.Symbol));
+        _context.MetaDataEntities.RemoveRange(_context.MetaDataEntities.Where(x => x.Symbol == response.Symbol));
+        _context.TradeInfoEntities.RemoveRange(_context.TradeInfoEntities.Where(x => x.Symbol == response.Symbol));
+        _context.PriceInfoEntities.RemoveRange(_context.PriceInfoEntities.Where(x => x.Symbol == response.Symbol));
+        _context.SecInfoEntities.RemoveRange(_context.SecInfoEntities.Where(x => x.Symbol == response.Symbol));
+
+        // Insert split entries into their own tables with Symbol populated
+        foreach (var equity in response.EquityResponse)
+        {
+            if (equity.OrderBook is not null)
+            {
+                var ob = Mapper.ToEntity<OrderBook, OrderBookEntity>(equity.OrderBook);
+                ob.Symbol = response.Symbol;
+                await _context.OrderBookEntities.AddAsync(ob);
+            }
+
+            if (equity.MetaData is not null)
+            {
+                var md = Mapper.ToEntity<MetaData, MetaDataEntity>(equity.MetaData);
+                md.Symbol = response.Symbol;
+                await _context.MetaDataEntities.AddAsync(md);
+            }
+
+            if (equity.TradeInfo is not null)
+            {
+                var ti = Mapper.ToEntity<TradeInfo, TradeInfoEntity>(equity.TradeInfo);
+                ti.Symbol = response.Symbol;
+                await _context.TradeInfoEntities.AddAsync(ti);
+            }
+
+            if (equity.PriceInfo is not null)
+            {
+                var pi = Mapper.ToEntity<PriceInfo, PriceInfoEntity>(equity.PriceInfo);
+                pi.Symbol = response.Symbol;
+                await _context.PriceInfoEntities.AddAsync(pi);
+            }
+
+            if (equity.SecInfo is not null)
+            {
+                var si = Mapper.ToEntity<SecInfo, SecInfoEntity>(equity.SecInfo);
+                si.Symbol = response.Symbol;
+                if (equity.SecInfo.IndexList is not null && equity.SecInfo.IndexList.Any())
+                {
+                    si.IndexListJson = System.Text.Json.JsonSerializer.Serialize(equity.SecInfo.IndexList);
+                }
+
+                await _context.SecInfoEntities.AddAsync(si);
+            }
+        }
+
+        await _context.SaveChangesAsync();
+        return response;
     }
 
-    public async Task<int> SaveYearwiseDataAsync(IEnumerable<Stock.Model.YearwiseData> data, string symbol)
+    public async Task<int> SaveYearwiseDataAsync(IEnumerable<YearwiseData> data, string symbol)
     {
-        var entities = data.Select(x => Mapper.ToEntity<Stock.Model.YearwiseData, YearwiseDataEntity>(x)).ToList();
+        var entities = data.Select(x => Mapper.ToEntity<YearwiseData, YearwiseDataEntity>(x)).ToList();
         foreach (var entity in entities)
         {
             entity.Symbol = symbol;
@@ -52,9 +111,9 @@ public class StockRepository(StockDbContext context) : IStockRepository
         return await _context.SaveChangesAsync();
     }
 
-    public async Task<int> SaveHistoricalTradeDataAsync(IEnumerable<Stock.Model.HistoricalTradeData> data, string symbol)
+    public async Task<int> SaveHistoricalTradeDataAsync(IEnumerable<HistoricalTradeData> data, string symbol)
     {
-        var entities = data.Select(x => Mapper.ToEntity<Stock.Model.HistoricalTradeData, HistoricalTradeDataEntity>(x)).ToList();
+        var entities = data.Select(x => Mapper.ToEntity<HistoricalTradeData, HistoricalTradeDataEntity>(x)).ToList();
         foreach (var entity in entities)
         {
             entity.Symbol = symbol;
@@ -65,15 +124,15 @@ public class StockRepository(StockDbContext context) : IStockRepository
         return await _context.SaveChangesAsync();
     }
 
-    public async Task<int> SaveIndexDataAsync(IEnumerable<Stock.Model.IndexData> data)
+    public async Task<int> SaveIndexDataAsync(IEnumerable<IndexData> data)
     {
-        var entities = data.Select(x => Mapper.ToEntity<Stock.Model.IndexData, IndexDataEntity>(x)).ToList();
+        var entities = data.Select(x => Mapper.ToEntity<IndexData, IndexDataEntity>(x)).ToList();
         _context.IndexDataEntities.RemoveRange(_context.IndexDataEntities);
         await _context.IndexDataEntities.AddRangeAsync(entities);
         return await _context.SaveChangesAsync();
     }
 
-    public async Task<int> SaveShareholdingPatternAsync(string symbol, IDictionary<string, Stock.Model.ShareholdingPatternEntry>? data)
+    public async Task<int> SaveShareholdingPatternAsync(string symbol, IDictionary<string, ShareholdingPatternEntry>? data)
     {
         if (data is null)
         {
@@ -83,7 +142,7 @@ public class StockRepository(StockDbContext context) : IStockRepository
         _context.ShareholdingPatternEntries.RemoveRange(_context.ShareholdingPatternEntries.Where(x => x.Symbol == symbol));
         foreach (var item in data)
         {
-            var entity = Mapper.ToEntity<Stock.Model.ShareholdingPatternEntry, ShareholdingPatternEntryEntity>(item.Value);
+            var entity = Mapper.ToEntity<ShareholdingPatternEntry, ShareholdingPatternEntryEntity>(item.Value);
             entity.Symbol = symbol;
             entity.CategoryName = item.Key;
             await _context.ShareholdingPatternEntries.AddAsync(entity);
@@ -92,7 +151,7 @@ public class StockRepository(StockDbContext context) : IStockRepository
         return await _context.SaveChangesAsync();
     }
 
-    public async Task<int> SavePeerComparisonDataAsync(string symbol, string quarter, IEnumerable<Stock.Model.PeerComparisonData>? data)
+    public async Task<int> SavePeerComparisonDataAsync(string symbol, string quarter, IEnumerable<PeerComparisonData>? data)
     {
         if (data is null)
         {
@@ -102,7 +161,7 @@ public class StockRepository(StockDbContext context) : IStockRepository
         _context.PeerComparisonDataEntities.RemoveRange(_context.PeerComparisonDataEntities.Where(x => x.Symbol == symbol && x.Quarter == quarter));
         foreach (var item in data)
         {
-            var entity = Mapper.ToEntity<Stock.Model.PeerComparisonData, PeerComparisonDataEntity>(item);
+            var entity = Mapper.ToEntity<PeerComparisonData, PeerComparisonDataEntity>(item);
             entity.Symbol = symbol;
             entity.Quarter = quarter;
             await _context.PeerComparisonDataEntities.AddAsync(entity);
