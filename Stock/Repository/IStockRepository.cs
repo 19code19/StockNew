@@ -3,6 +3,7 @@ namespace Stock.Repository;
 public interface IStockRepository
 {
     Task<IReadOnlyList<string>> GetAllSymbolsAsync();
+    Task<IReadOnlyList<string>> GetAllSymbolsSeriesAsync();
     Task<int> SaveEquityListingsAsync(IEnumerable<Entity.EquityListing> listings);
     Task<   SymbolDataResponse?> SaveSymbolDataAsync(SymbolDataResponse response);
     Task<int> SaveYearwiseDataAsync(IEnumerable<Entity.YearwiseData> data, string symbol);

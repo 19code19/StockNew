@@ -39,7 +39,7 @@ public class NSEService
 
     public async Task<int> SaveYearwiseData()
     {
-        var symbols = await _stockRepository.GetAllSymbolsAsync();
+        var symbols = await _stockRepository.GetAllSymbolsSeriesAsync();
         var results = await ProcessInBatchesAsync(symbols, async symbol =>
         {
             var result = await _nSEDataService.GetYearwiseData(symbol);

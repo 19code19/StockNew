@@ -10,16 +10,14 @@ builder.Services.AddSwaggerGen();
 // Register AutoMapper with the assembly containing MappingProfile
 builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
 
-// Register DbContext
-builder.Services.AddDbContext<StockDbContext>(options =>
+// Register DbContext factory so parallel work can create isolated contexts
+builder.Services.AddDbContextFactory<StockDbContext>(options =>
     options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
 
-// Register repository
-builder.Services.AddScoped<IStockRepository, StockRepository>();
-
-// Register services
-builder.Services.AddScoped<NSEService>();
-builder.Services.AddScoped<NSEDataService>();
+// Register repository and services as transient to avoid sharing a single instance across concurrent work
+builder.Services.AddTransient<IStockRepository, StockRepository>();
+builder.Services.AddTransient<NSEService>();
+builder.Services.AddTransient<NSEDataService>();
 builder.Services.AddHttpClient<NSEDataService>();
 
 var app = builder.Build();
