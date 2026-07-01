@@ -150,7 +150,7 @@ const FavoritesPage = () => {
       {
         field: 'symbol',
         colId: 'favorite',
-        headerName: 'Favorite',
+        headerName: 'Remove',
         width: 90,
         cellRenderer: renderFavoriteButton,
         sortable: false,

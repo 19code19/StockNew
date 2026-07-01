@@ -9,13 +9,12 @@ ModuleRegistry.registerModules([ClientSideRowModelModule]);
 type HistoricalTradeRow = Record<string, unknown>;
 
 type HistoricalTradePanelProps = {
-  rowsCount?: number;
   symbol?: string | null;
 };
 
 const formatDateInput = (date: Date) => date.toISOString().slice(0, 10);
 
-const HistoricalTradePanel = ({ rowsCount, symbol }: HistoricalTradePanelProps) => {
+const HistoricalTradePanel = ({ symbol }: HistoricalTradePanelProps) => {
   const [fromDate, setFromDate] = useState(() => {
     const date = new Date();
     date.setFullYear(date.getFullYear() - 1);
@@ -24,7 +23,7 @@ const HistoricalTradePanel = ({ rowsCount, symbol }: HistoricalTradePanelProps) 
   const [toDate, setToDate] = useState(() => formatDateInput(new Date()));
   const [rows, setRows] = useState<HistoricalTradeRow[]>([]);
   const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [error, setError] = useState<string | null>(null);
   const [loaded, setLoaded] = useState(false);
 
   const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
@@ -84,7 +83,7 @@ const HistoricalTradePanel = ({ rowsCount, symbol }: HistoricalTradePanelProps) 
 
   const fetchHistoricalData = async (forceRefresh = false) => {
     setLoading(true);
-    setError('');
+    setError(null);
     try {
       const queryParams = new URLSearchParams({
         fromDate,
@@ -116,6 +115,10 @@ const HistoricalTradePanel = ({ rowsCount, symbol }: HistoricalTradePanelProps) 
   useEffect(() => {
     void fetchHistoricalData(false);
   }, [symbol]);
+
+  const onGridReady = useCallback((params: GridReadyEvent) => {
+    setGridApi(params.api);
+  }, []);
 
   return (
     <div className="flex h-full flex-col gap-6">
@@ -149,7 +152,11 @@ const HistoricalTradePanel = ({ rowsCount, symbol }: HistoricalTradePanelProps) 
         </div>
       </div>
 
-      <div className="text-sm text-slate-300">Loaded {rows.length} row{rows.length === 1 ? '' : 's'}</div>
+      <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-slate-300">
+        <div>Loaded {rows.length} row{rows.length === 1 ? '' : 's'}</div>
+        {loaded && !error ? <div className="text-emerald-400">Data loaded successfully</div> : null}
+      </div>
+      {error ? <div className="rounded-2xl border border-rose-700 bg-rose-950/20 p-3 text-sm text-rose-200">{error}</div> : null}
 
       <div className="ag-theme-alpine h-[calc(100vh-18rem)] min-h-[420px] w-full rounded-2xl border border-slate-800 bg-slate-950/80">
         <AgGridReact<HistoricalTradeRow>
@@ -160,6 +167,7 @@ const HistoricalTradePanel = ({ rowsCount, symbol }: HistoricalTradePanelProps) 
           animateRows={true}
           pagination={true}
           paginationPageSize={20}
+          onGridReady={onGridReady}
         />
       </div>
     </div>

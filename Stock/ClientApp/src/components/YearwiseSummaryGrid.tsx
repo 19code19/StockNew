@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AgGridReact } from '@ag-grid-community/react';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
-import { ModuleRegistry, type ColDef, type GridOptions, type ICellRendererParams } from '@ag-grid-community/core';
+import { ModuleRegistry, type ColDef, type GridApi, type GridOptions, type GridReadyEvent, type ICellRendererParams } from '@ag-grid-community/core';
 import { SetFilterModule } from '@ag-grid-enterprise/set-filter';
 import { YearwiseStockSummary } from '../models/YearwiseStockSummary';
 import { buildCommonSymbolColumns, defaultGridOptions } from './agGridHelpers';
@@ -12,8 +12,11 @@ type YearwiseSummaryGridProps = {
   data: YearwiseStockSummary[];
 };
 
+const normalizeSymbol = (symbol?: string | null) => symbol?.trim().toUpperCase() ?? '';
+
 const YearwiseSummaryGrid = ({ data }: YearwiseSummaryGridProps) => {
   const [favoriteSymbols, setFavoriteSymbols] = useState<Set<string>>(new Set());
+  const [gridApi, setGridApi] = useState<GridApi | null>(null);
 
   const fetchFavorites = useCallback(async () => {
     try {
@@ -21,16 +24,25 @@ const YearwiseSummaryGrid = ({ data }: YearwiseSummaryGridProps) => {
       if (!response.ok) {
         return;
       }
-      const favorites = (await response.json()) as { symbol: string }[];
-      setFavoriteSymbols(new Set(favorites.map((fav) => fav.symbol)));
+      const favorites = (await response.json()) as { symbol?: string | null }[];
+      const normalized = new Set(favorites.map((fav) => normalizeSymbol(fav.symbol)) .filter(Boolean));
+      setFavoriteSymbols(normalized);
     } catch {
-      // ignore favorites load errors
+      setFavoriteSymbols(new Set());
     }
   }, []);
 
   useEffect(() => {
     void fetchFavorites();
   }, [fetchFavorites]);
+
+  useEffect(() => {
+    if (!gridApi) {
+      return;
+    }
+
+    gridApi.refreshCells({ force: true, columns: ['favorite'] });
+  }, [favoriteSymbols, gridApi]);
 
   const toggleFavorite = useCallback(
     async (symbol: string, companyName: string, isFavorite: boolean) => {
@@ -53,13 +65,14 @@ const YearwiseSummaryGrid = ({ data }: YearwiseSummaryGridProps) => {
       const companyName = params.data?.companyName as string;
       if (!symbol) return null;
 
-      const isFavorite = favoriteSymbols.has(symbol);
+      const normalizedSymbol = normalizeSymbol(symbol);
+      const isFavorite = favoriteSymbols.has(normalizedSymbol);
       return (
         <button
           type="button"
           onClick={() => void toggleFavorite(symbol, companyName, isFavorite)}
           className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-            isFavorite ? 'bg-rose-600 text-white hover:bg-rose-500' : 'bg-slate-700 text-slate-100 hover:bg-slate-600'
+            isFavorite ? 'bg-amber-500 text-slate-950 hover:bg-amber-400' : 'bg-slate-700 text-slate-100 hover:bg-slate-600'
           }`}
         >
           {isFavorite ? '★' : '☆'}
@@ -136,12 +149,16 @@ const YearwiseSummaryGrid = ({ data }: YearwiseSummaryGridProps) => {
         valueFormatter: (params) => `${Number(params.value).toFixed(2)}%`,
       },
     ],
-    [],
+    [renderFavoriteButton],
   );
 
   const gridOptions = useMemo<GridOptions>(() => ({
     ...defaultGridOptions,
   }), []);
+
+  const onGridReady = useCallback((params: GridReadyEvent) => {
+    setGridApi(params.api);
+  }, []);
 
   return (
     <div className="ag-theme-alpine h-full w-full bg-slate-950">
@@ -149,6 +166,7 @@ const YearwiseSummaryGrid = ({ data }: YearwiseSummaryGridProps) => {
         rowData={data}
         columnDefs={columnDefs}
         gridOptions={gridOptions}
+        onGridReady={onGridReady}
       />
     </div>
   );
