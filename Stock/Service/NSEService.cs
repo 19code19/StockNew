@@ -63,20 +63,34 @@ public class NSEService
         return results.SelectMany(x => x).ToList();
     }
 
+    public async Task<List<HistoricalTradeData>> SaveHistoricalTradeDataForSymbol(string symbol, DateTime fromDate, DateTime toDate, string series = "EQ")
+    {
+        var data = await _nSEDataService.GetHistoricalTradeData(symbol, fromDate, toDate, series);
+        await _stockRepository.SaveHistoricalTradeDataAsync(data, symbol, fromDate, toDate, series);
+        return data;
+    }
+
     public async Task<List<HistoricalTradeData>> GetHistoricalTradeData(DateTime fromDate, DateTime toDate, string series = "EQ", bool forceRefresh = false)
+    {
+        // Server-side caching is implemented per-symbol. For the all-symbol path we delegate
+        // to the batch save which fetches and stores data for all symbols.
+        return await SaveHistoricalTradeData(fromDate, toDate, series);
+    }
+
+    public async Task<List<HistoricalTradeData>> GetHistoricalTradeDataForSymbol(string symbol, DateTime fromDate, DateTime toDate, string series = "EQ", bool forceRefresh = false)
     {
         if (forceRefresh)
         {
-            return await SaveHistoricalTradeData(fromDate, toDate, series);
+            return await SaveHistoricalTradeDataForSymbol(symbol, fromDate, toDate, series);
         }
 
-        var existing = await _stockRepository.GetSavedHistoricalTradeDataAsync(fromDate, toDate, series);
+        var existing = await _stockRepository.GetSavedHistoricalTradeDataAsync(symbol, fromDate, toDate, series);
         if (existing.Any())
         {
             return existing.ToList();
         }
 
-        return await SaveHistoricalTradeData(fromDate, toDate, series);
+        return await SaveHistoricalTradeDataForSymbol(symbol, fromDate, toDate, series);
     }
 
     public async Task<IndexDataResponse?> SaveIndexData(string type = "All")
@@ -180,6 +194,21 @@ public class NSEService
         });
 
         return new CorpAnnouncementResult(string.Empty, results.SelectMany(x => x.Data ?? []).ToList());
+    }
+
+    public async Task<int> AddFavoriteSymbol(string symbol, string companyName)
+    {
+        return await _stockRepository.AddFavoriteSymbolAsync(symbol, companyName);
+    }
+
+    public async Task<int> RemoveFavoriteSymbol(string symbol)
+    {
+        return await _stockRepository.RemoveFavoriteSymbolAsync(symbol);
+    }
+
+    public async Task<IReadOnlyList<FavoriteSymbolEntity>> GetFavoriteSymbols()
+    {
+        return await _stockRepository.GetFavoriteSymbolsAsync();
     }
 
     #region Private Helpers

@@ -40,6 +40,7 @@ public class StockDbContext(DbContextOptions<StockDbContext> options) : DbContex
     public DbSet<CorpActionEntity> CorpActions => Set<CorpActionEntity>();
     public DbSet<CorporateAnnouncementEntity> CorporateAnnouncements => Set<CorporateAnnouncementEntity>();
     public DbSet<YearwiseStockSummaryEntity> YearwiseStockSummaries => Set<YearwiseStockSummaryEntity>();
+    public DbSet<FavoriteSymbolEntity> FavoriteSymbolEntities => Set<FavoriteSymbolEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
@@ -80,5 +81,9 @@ public class StockDbContext(DbContextOptions<StockDbContext> options) : DbContex
             .WithMany()
             .HasForeignKey(x => x.SecInfoId)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<YearwiseStockSummaryEntity>()
+            .HasNoKey()
+            .ToView("vw_YearwiseStockSummary");
     }
 }

@@ -190,6 +190,9 @@ namespace Stock.Migrations
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
                     Symbol = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FromDate = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ToDate = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Series = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Ch52WeekHighPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Ch52WeekLowPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     ChClosingPrice = table.Column<decimal>(type: "decimal(18,2)", nullable: false),

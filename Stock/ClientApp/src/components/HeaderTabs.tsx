@@ -3,6 +3,7 @@ import { NavLink } from 'react-router-dom';
 const tabs = [
   { label: 'Yearwise Summary', to: '/' },
   { label: 'Historical Trade', to: '/historical' },
+  { label: 'Favorites', to: '/favorites' },
 ];
 
 const HeaderTabs = () => (

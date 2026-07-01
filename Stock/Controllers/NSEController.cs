@@ -16,7 +16,7 @@ public class NSEController(NSEService nSEService) : ControllerBase
     /// </remarks>
     /// <returns>Number of indices inserted or updated</returns>
     /// <response code="200">Success - returns count</response>
-    /// <response code="500">NSE API unreachable or save failed</response>
+    /// <response code="500">NSE API unreachable or save failed</response>z`
     [HttpPost("allIndices")]
     [ProducesResponseType(typeof(int), 200)]
     [ProducesResponseType(500)]
@@ -82,11 +82,16 @@ public class NSEController(NSEService nSEService) : ControllerBase
     [HttpGet("historical-trade-data")]
     [ProducesResponseType(typeof(List<HistoricalTradeData>), 200)]
     [ProducesResponseType(400)]
-    public async Task<IActionResult> GetHistoricalTradeData([FromQuery] DateTime fromDate, [FromQuery] DateTime toDate, [FromQuery] string series = "EQ", [FromQuery] bool forceRefresh = false)
+    public async Task<IActionResult> GetHistoricalTradeData([FromQuery] DateTime fromDate, [FromQuery] DateTime toDate, [FromQuery] string series = "EQ", [FromQuery] bool forceRefresh = false, [FromQuery] string? symbol = null)
     {
         if (fromDate > toDate)
         {
             return BadRequest("fromDate must be less than or equal to toDate");
+        }
+        if (!string.IsNullOrWhiteSpace(symbol))
+        {
+            var single = await _nSEService.GetHistoricalTradeDataForSymbol(symbol, fromDate, toDate, series, forceRefresh);
+            return Ok(single);
         }
 
         var result = await _nSEService.GetHistoricalTradeData(fromDate, toDate, series, forceRefresh);
@@ -105,15 +110,54 @@ public class NSEController(NSEService nSEService) : ControllerBase
     [HttpPost("save-historical-trade-data")]
     [ProducesResponseType(typeof(List<HistoricalTradeData>), 200)]
     [ProducesResponseType(400)]
-    public async Task<IActionResult> SaveHistoricalTradeData([FromQuery] DateTime fromDate, [FromQuery] DateTime toDate, [FromQuery] string series = "EQ")
+    public async Task<IActionResult> SaveHistoricalTradeData([FromQuery] DateTime fromDate, [FromQuery] DateTime toDate, [FromQuery] string series = "EQ", [FromQuery] string? symbol = null)
     {
         if (fromDate > toDate)
         {
             return BadRequest("fromDate must be less than or equal to toDate");
         }
+        if (!string.IsNullOrWhiteSpace(symbol))
+        {
+            var single = await _nSEService.SaveHistoricalTradeDataForSymbol(symbol, fromDate, toDate, series);
+            return Ok(single);
+        }
 
         var result = await _nSEService.SaveHistoricalTradeData(fromDate, toDate, series);
         return Ok(result);
+    }
+
+    [HttpPost("favorites")]
+    [ProducesResponseType(typeof(int), 200)]
+    public async Task<IActionResult> AddFavorite([FromQuery] string symbol, [FromQuery] string companyName)
+    {
+        if (string.IsNullOrWhiteSpace(symbol) || string.IsNullOrWhiteSpace(companyName))
+        {
+            return BadRequest("symbol and companyName are required");
+        }
+
+        var count = await _nSEService.AddFavoriteSymbol(symbol, companyName);
+        return Ok(count);
+    }
+
+    [HttpDelete("favorites")]
+    [ProducesResponseType(typeof(int), 200)]
+    public async Task<IActionResult> RemoveFavorite([FromQuery] string symbol)
+    {
+        if (string.IsNullOrWhiteSpace(symbol))
+        {
+            return BadRequest("symbol is required");
+        }
+
+        var count = await _nSEService.RemoveFavoriteSymbol(symbol);
+        return Ok(count);
+    }
+
+    [HttpGet("favorites")]
+    [ProducesResponseType(typeof(List<FavoriteSymbolEntity>), 200)]
+    public async Task<IActionResult> GetFavorites()
+    {
+        var favorites = await _nSEService.GetFavoriteSymbols();
+        return Ok(favorites);
     }
 
     /// <summary>

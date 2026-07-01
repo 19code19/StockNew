@@ -5,7 +5,7 @@ SELECT
     T.DeliveryToTradedQuantity,
     T.ApplicableMargin      AS T_ApplicableMargin,
     T.QuantityTraded,
-    T.DeliveryQuantity      AS T_DeliveryQuantity,
+    T.DeliveryQuantity      AS DeliveryQuantity,
     T.TotalMarketCap,
     S.BasicIndustry,
     S.IsSuspended,

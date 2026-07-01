@@ -143,7 +143,7 @@ public class StockRepository(IDbContextFactory<StockDbContext> contextFactory) :
         return await context.SaveChangesAsync();
     }
 
-    public async Task<IReadOnlyList<HistoricalTradeData>> GetSavedHistoricalTradeDataAsync(DateTime fromDate, DateTime toDate, string series = "EQ")
+    public async Task<IReadOnlyList<HistoricalTradeData>> GetSavedHistoricalTradeDataAsync(string symbol, DateTime fromDate, DateTime toDate, string series = "EQ")
     {
         await using var context = _contextFactory.CreateDbContext();
 
@@ -152,7 +152,7 @@ public class StockRepository(IDbContextFactory<StockDbContext> contextFactory) :
 
         return await context.HistoricalTradeDataEntities
             .AsNoTracking()
-            .Where(x => x.FromDate == fromDateString && x.ToDate == toDateString && x.Series == series)
+            .Where(x => x.Symbol == symbol && x.FromDate == fromDateString && x.ToDate == toDateString && x.Series == series)
             .Select(x => Stock.Helpers.Mapper.ToEntity<HistoricalTradeDataEntity, HistoricalTradeData>(x))
             .ToListAsync();
     }
@@ -213,5 +213,43 @@ public class StockRepository(IDbContextFactory<StockDbContext> contextFactory) :
         }
 
         return await context.SaveChangesAsync();
+    }
+
+    public async Task<int> AddFavoriteSymbolAsync(string symbol, string companyName)
+    {
+        await using var context = _contextFactory.CreateDbContext();
+        if (await context.FavoriteSymbolEntities.AnyAsync(x => x.Symbol == symbol))
+        {
+            return 0;
+        }
+
+        var entity = new FavoriteSymbolEntity
+        {
+            Symbol = symbol,
+            CompanyName = companyName,
+            AddedAt = DateTime.UtcNow,
+        };
+
+        await context.FavoriteSymbolEntities.AddAsync(entity);
+        return await context.SaveChangesAsync();
+    }
+
+    public async Task<int> RemoveFavoriteSymbolAsync(string symbol)
+    {
+        await using var context = _contextFactory.CreateDbContext();
+        var existing = await context.FavoriteSymbolEntities.Where(x => x.Symbol == symbol).ToListAsync();
+        if (!existing.Any())
+        {
+            return 0;
+        }
+
+        context.FavoriteSymbolEntities.RemoveRange(existing);
+        return await context.SaveChangesAsync();
+    }
+
+    public async Task<IReadOnlyList<FavoriteSymbolEntity>> GetFavoriteSymbolsAsync()
+    {
+        await using var context = _contextFactory.CreateDbContext();
+        return await context.FavoriteSymbolEntities.AsNoTracking().OrderByDescending(x => x.AddedAt).ToListAsync();
     }
 }

@@ -1,10 +1,10 @@
-import { useMemo } from 'react';
-import { Link } from 'react-router-dom';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AgGridReact } from '@ag-grid-community/react';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
 import { ModuleRegistry, type ColDef, type GridOptions, type ICellRendererParams } from '@ag-grid-community/core';
 import { SetFilterModule } from '@ag-grid-enterprise/set-filter';
 import { YearwiseStockSummary } from '../models/YearwiseStockSummary';
+import { buildCommonSymbolColumns, defaultGridOptions } from './agGridHelpers';
 
 ModuleRegistry.registerModules([ClientSideRowModelModule, SetFilterModule]);
 
@@ -12,65 +12,72 @@ type YearwiseSummaryGridProps = {
   data: YearwiseStockSummary[];
 };
 
-const createSlug = (company: string) =>
-  company
-    .trim()
-    .replace(/[^a-zA-Z0-9]+/g, '-')
-    .replace(/^-+|-+$/g, '')
-    .toLowerCase();
-
-const renderExternalViewLink = (params: ICellRendererParams): JSX.Element | null => {
-  const symbol = params.value as string;
-  if (!symbol) return null;
-
-  const company = (params.data as YearwiseStockSummary)?.companyName ?? '';
-  const slug = createSlug(company);
-
-  return (
-    <a
-      className="text-sky-300 hover:text-sky-100 underline"
-      href={`https://www.nseindia.com/get-quote/equity/${symbol}/${slug}`}
-      target="_blank"
-      rel="noreferrer"
-    >
-      View
-    </a>
-  );
-};
-
-const renderDetailsLink = (params: ICellRendererParams): JSX.Element | null => {
-  const symbol = params.value as string;
-  if (!symbol) return null;
-
-  const company = (params.data as YearwiseStockSummary)?.companyName ?? '';
-  const slug = createSlug(company);
-
-  return (
-    <Link className="text-sky-300 underline hover:text-sky-100" to={`/details/${symbol}/${slug}`}>
-      Details
-    </Link>
-  );
-};
-
 const YearwiseSummaryGrid = ({ data }: YearwiseSummaryGridProps) => {
+  const [favoriteSymbols, setFavoriteSymbols] = useState<Set<string>>(new Set());
+
+  const fetchFavorites = useCallback(async () => {
+    try {
+      const response = await fetch('/api/nse/favorites');
+      if (!response.ok) {
+        return;
+      }
+      const favorites = (await response.json()) as { symbol: string }[];
+      setFavoriteSymbols(new Set(favorites.map((fav) => fav.symbol)));
+    } catch {
+      // ignore favorites load errors
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchFavorites();
+  }, [fetchFavorites]);
+
+  const toggleFavorite = useCallback(
+    async (symbol: string, companyName: string, isFavorite: boolean) => {
+      const url = `/api/nse/favorites?symbol=${encodeURIComponent(symbol)}${
+        isFavorite ? '' : `&companyName=${encodeURIComponent(companyName)}`
+      }`;
+      const method = isFavorite ? 'DELETE' : 'POST';
+
+      const response = await fetch(url, { method });
+      if (response.ok) {
+        await fetchFavorites();
+      }
+    },
+    [fetchFavorites],
+  );
+
+  const renderFavoriteButton = useCallback(
+    (params: ICellRendererParams): JSX.Element | null => {
+      const symbol = params.data?.symbol as string;
+      const companyName = params.data?.companyName as string;
+      if (!symbol) return null;
+
+      const isFavorite = favoriteSymbols.has(symbol);
+      return (
+        <button
+          type="button"
+          onClick={() => void toggleFavorite(symbol, companyName, isFavorite)}
+          className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+            isFavorite ? 'bg-rose-600 text-white hover:bg-rose-500' : 'bg-slate-700 text-slate-100 hover:bg-slate-600'
+          }`}
+        >
+          {isFavorite ? '★' : '☆'}
+        </button>
+      );
+    },
+    [favoriteSymbols, toggleFavorite],
+  );
+
   const columnDefs = useMemo<ColDef[]>(
     () => [
+      ...buildCommonSymbolColumns(),
       {
-        colId: 'view',
+        colId: 'favorite',
         field: 'symbol',
-        headerName: 'View',
-        width: 70,
-        cellRenderer: renderExternalViewLink,
-        sortable: false,
-        filter: false,
-        pinned: 'left',
-      },
-      {
-        colId: 'details',
-        field: 'symbol',
-        headerName: 'Details',
-        width: 80,
-        cellRenderer: renderDetailsLink,
+        headerName: 'Favorite',
+        width: 100,
+        cellRenderer: renderFavoriteButton,
         sortable: false,
         filter: false,
         pinned: 'left',
@@ -133,16 +140,7 @@ const YearwiseSummaryGrid = ({ data }: YearwiseSummaryGridProps) => {
   );
 
   const gridOptions = useMemo<GridOptions>(() => ({
-    defaultColDef: {
-      sortable: true,
-      resizable: true,
-      filter: true,
-      floatingFilter: true,
-    },
-    animateRows: true,
-    rowHeight: 42,
-    pagination: true,
-    paginationPageSize: 20,
+    ...defaultGridOptions,
   }), []);
 
   return (

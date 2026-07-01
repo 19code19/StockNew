@@ -3,6 +3,7 @@ using System;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 using Stock.Data;
 
@@ -11,9 +12,11 @@ using Stock.Data;
 namespace Stock.Migrations
 {
     [DbContext(typeof(StockDbContext))]
-    partial class StockDbContextModelSnapshot : ModelSnapshot
+    [Migration("20260701151613_AddHistoricalTradeDateSeriesColumns")]
+    partial class AddHistoricalTradeDateSeriesColumns
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        /// <inheritdoc />
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -515,28 +518,6 @@ namespace Stock.Migrations
                     b.HasIndex("TradeInfoId");
 
                     b.ToTable("EquitySymbolDataEntities");
-                });
-
-            modelBuilder.Entity("Stock.Data.FavoriteSymbolEntity", b =>
-                {
-                    b.Property<Guid>("Id")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("uniqueidentifier");
-
-                    b.Property<DateTime>("AddedAt")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("CompanyName")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Symbol")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.HasKey("Id");
-
-                    b.ToTable("FavoriteSymbolEntities");
                 });
 
             modelBuilder.Entity("Stock.Data.FinancialStatusEntity", b =>
