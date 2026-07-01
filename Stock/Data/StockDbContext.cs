@@ -39,6 +39,7 @@ public class StockDbContext(DbContextOptions<StockDbContext> options) : DbContex
     public DbSet<CorpAnnualReportEntity> CorpAnnualReports => Set<CorpAnnualReportEntity>();
     public DbSet<CorpActionEntity> CorpActions => Set<CorpActionEntity>();
     public DbSet<CorporateAnnouncementEntity> CorporateAnnouncements => Set<CorporateAnnouncementEntity>();
+    public DbSet<YearwiseStockSummaryEntity> YearwiseStockSummaries => Set<YearwiseStockSummaryEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {

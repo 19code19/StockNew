@@ -56,11 +56,27 @@ public class NSEService
         var results = await ProcessInBatchesAsync(symbols, async symbol =>
         {
             var data = await _nSEDataService.GetHistoricalTradeData(symbol, fromDate, toDate, series);
-            await _stockRepository.SaveHistoricalTradeDataAsync(data, symbol);
+            await _stockRepository.SaveHistoricalTradeDataAsync(data, symbol, fromDate, toDate, series);
             return data;
         });
 
         return results.SelectMany(x => x).ToList();
+    }
+
+    public async Task<List<HistoricalTradeData>> GetHistoricalTradeData(DateTime fromDate, DateTime toDate, string series = "EQ", bool forceRefresh = false)
+    {
+        if (forceRefresh)
+        {
+            return await SaveHistoricalTradeData(fromDate, toDate, series);
+        }
+
+        var existing = await _stockRepository.GetSavedHistoricalTradeDataAsync(fromDate, toDate, series);
+        if (existing.Any())
+        {
+            return existing.ToList();
+        }
+
+        return await SaveHistoricalTradeData(fromDate, toDate, series);
     }
 
     public async Task<IndexDataResponse?> SaveIndexData(string type = "All")

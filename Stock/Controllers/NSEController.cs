@@ -70,7 +70,31 @@ public class NSEController(NSEService nSEService) : ControllerBase
     public async Task<IActionResult> SaveYearwiseData() => Ok(await _nSEService.SaveYearwiseData());
 
     /// <summary>
-    /// Fetches historical trade data for tracked symbols between two dates and persists it
+    /// Gets historical trade data from the database if present, otherwise fetches and persists it.
+    /// </summary>
+    /// <param name="fromDate">Start date (inclusive) in yyyy-MM-dd format</param>
+    /// <param name="toDate">End date (inclusive) in yyyy-MM-dd format</param>
+    /// <param name="series">Series code (default: EQ)</param>
+    /// <param name="forceRefresh">When true, always fetches from the NSE API and replaces cached data</param>
+    /// <returns>Flattened list of HistoricalTradeData</returns>
+    /// <response code="200">Success</response>
+    /// <response code="400">Invalid date parameters</response>
+    [HttpGet("historical-trade-data")]
+    [ProducesResponseType(typeof(List<HistoricalTradeData>), 200)]
+    [ProducesResponseType(400)]
+    public async Task<IActionResult> GetHistoricalTradeData([FromQuery] DateTime fromDate, [FromQuery] DateTime toDate, [FromQuery] string series = "EQ", [FromQuery] bool forceRefresh = false)
+    {
+        if (fromDate > toDate)
+        {
+            return BadRequest("fromDate must be less than or equal to toDate");
+        }
+
+        var result = await _nSEService.GetHistoricalTradeData(fromDate, toDate, series, forceRefresh);
+        return Ok(result);
+    }
+
+    /// <summary>
+    /// Fetches historical trade data from the NSE API for the requested date range and persists it.
     /// </summary>
     /// <param name="fromDate">Start date (inclusive) in yyyy-MM-dd format</param>
     /// <param name="toDate">End date (inclusive) in yyyy-MM-dd format</param>

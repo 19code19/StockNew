@@ -4,6 +4,9 @@ public class HistoricalTradeDataEntity
 {
     public Guid Id { get; set; } = Guid.NewGuid();
     public string Symbol { get; set; } = string.Empty;
+    public string FromDate { get; set; } = string.Empty;
+    public string ToDate { get; set; } = string.Empty;
+    public string Series { get; set; } = string.Empty;
     public decimal Ch52WeekHighPrice { get; set; }
     public decimal Ch52WeekLowPrice { get; set; }
     public decimal ChClosingPrice { get; set; }

@@ -123,18 +123,38 @@ public class StockRepository(IDbContextFactory<StockDbContext> contextFactory) :
         return await context.SaveChangesAsync();
     }
 
-    public async Task<int> SaveHistoricalTradeDataAsync(IEnumerable<HistoricalTradeData> data, string symbol)
+    public async Task<int> SaveHistoricalTradeDataAsync(IEnumerable<HistoricalTradeData> data, string symbol, DateTime fromDate, DateTime toDate, string series = "EQ")
     {
         await using var context = _contextFactory.CreateDbContext();
+        var fromDateString = fromDate.ToString("yyyy-MM-dd");
+        var toDateString = toDate.ToString("yyyy-MM-dd");
+
         var entities = data.Select(x => Stock.Helpers.Mapper.ToEntity<HistoricalTradeData, HistoricalTradeDataEntity>(x)).ToList();
         foreach (var entity in entities)
         {
             entity.Symbol = symbol;
+            entity.FromDate = fromDateString;
+            entity.ToDate = toDateString;
+            entity.Series = series;
         }
 
         context.HistoricalTradeDataEntities.RemoveRange(context.HistoricalTradeDataEntities.Where(x => x.Symbol == symbol));
         await context.HistoricalTradeDataEntities.AddRangeAsync(entities);
         return await context.SaveChangesAsync();
+    }
+
+    public async Task<IReadOnlyList<HistoricalTradeData>> GetSavedHistoricalTradeDataAsync(DateTime fromDate, DateTime toDate, string series = "EQ")
+    {
+        await using var context = _contextFactory.CreateDbContext();
+
+        var fromDateString = fromDate.ToString("yyyy-MM-dd");
+        var toDateString = toDate.ToString("yyyy-MM-dd");
+
+        return await context.HistoricalTradeDataEntities
+            .AsNoTracking()
+            .Where(x => x.FromDate == fromDateString && x.ToDate == toDateString && x.Series == series)
+            .Select(x => Stock.Helpers.Mapper.ToEntity<HistoricalTradeDataEntity, HistoricalTradeData>(x))
+            .ToListAsync();
     }
 
     public async Task<int> SaveIndexDataAsync(IEnumerable<IndexData> data)

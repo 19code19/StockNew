@@ -7,7 +7,8 @@ public interface IStockRepository
     Task<int> SaveEquityListingsAsync(IEnumerable<Entity.EquityListing> listings);
     Task<   SymbolDataResponse?> SaveSymbolDataAsync(SymbolDataResponse response);
     Task<int> SaveYearwiseDataAsync(IEnumerable<Entity.YearwiseData> data, string symbol);
-    Task<int> SaveHistoricalTradeDataAsync(IEnumerable<HistoricalTradeData> data, string symbol);
+    Task<int> SaveHistoricalTradeDataAsync(IEnumerable<HistoricalTradeData> data, string symbol, DateTime fromDate, DateTime toDate, string series = "EQ");
+    Task<IReadOnlyList<HistoricalTradeData>> GetSavedHistoricalTradeDataAsync(DateTime fromDate, DateTime toDate, string series = "EQ");
     Task<int> SaveIndexDataAsync(IEnumerable<IndexData> data);
     Task<int> SaveAllIndicesAsync(IEnumerable<IndicesData> data);
     Task<int> SaveShareholdingPatternAsync(string symbol, IDictionary<string, ShareholdingPatternEntry>? data);

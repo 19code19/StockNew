@@ -1,0 +1,1 @@
+{"root":["./src/app.tsx","./src/main.tsx","./src/components/headertabs.tsx","./src/components/historicaltradepanel.tsx","./src/components/yearwisesummarygrid.tsx","./src/context/summarydatacontext.tsx","./src/models/yearwisestocksummary.ts","./src/pages/historicaltradepage.tsx","./src/pages/yearwisestocksummarypage.tsx"],"version":"5.9.3"}

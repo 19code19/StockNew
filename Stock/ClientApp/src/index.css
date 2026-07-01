@@ -1,0 +1,95 @@
+@import '@ag-grid-community/styles/ag-grid.css';
+@import '@ag-grid-community/styles/ag-theme-alpine.css';
+
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
+:root {
+  color-scheme: dark;
+  font-family: Inter, system-ui, -apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif;
+}
+
+body {
+  margin: 0;
+  min-height: 100vh;
+  background: linear-gradient(135deg, #020617 0%, #0f172a 100%);
+  color: #e2e8f0;
+}
+
+* {
+  box-sizing: border-box;
+}
+
+.ag-theme-alpine {
+  --ag-background-color: #020617;
+  --ag-foreground-color: #e2e8f0;
+  --ag-header-background-color: #111827;
+  --ag-header-foreground-color: #f8fafc;
+  --ag-row-hover-color: #1e293b;
+  --ag-odd-row-background-color: #0b1120;
+  --ag-selected-row-background-color: #1d4ed8;
+  --ag-border-color: #334155;
+  --ag-row-border-color: #334155;
+  --ag-input-foreground-color: #e2e8f0;
+  --ag-input-background-color: #0b1120;
+  --ag-input-border-color: #334155;
+  --ag-input-placeholder-color: #94a3b8;
+  --ag-popup-background-color: #020617;
+  --ag-panel-background-color: #020617;
+  --ag-panel-border-color: #334155;
+}
+
+.ag-theme-alpine .ag-filter-body,
+.ag-theme-alpine .ag-filter-header,
+.ag-theme-alpine .ag-menu-option-text,
+.ag-theme-alpine .ag-set-filter-list-item label,
+.ag-theme-alpine .ag-filter-apply-panel button,
+.ag-theme-alpine .ag-filter-tool-panel,
+.ag-theme-alpine .ag-column-select-viewport,
+.ag-theme-alpine .ag-input-field-input {
+  color: #e2e8f0 !important;
+}
+
+.ag-theme-alpine .ag-input-field-input,
+.ag-theme-alpine .ag-filter-body input,
+.ag-theme-alpine .ag-filter-body select,
+.ag-theme-alpine .ag-set-filter-list-item input,
+.ag-theme-alpine .ag-filter-body .ag-input-field-input,
+.ag-theme-alpine .ag-filter-body .ag-input-text,
+.ag-theme-alpine .ag-filter-body .ag-filter-filter,
+.ag-theme-alpine .ag-set-filter-list,
+.ag-theme-alpine .ag-set-filter-list-item,
+.ag-theme-alpine .ag-filter-body .ag-set-filter-list-item,
+.ag-theme-alpine .ag-filter-body .ag-set-filter-list-item label,
+.ag-theme-alpine .ag-popup-child,
+.ag-theme-alpine .ag-menu,
+.ag-theme-alpine .ag-menu-option,
+.ag-theme-alpine .ag-menu-item,
+.ag-theme-alpine .ag-menu-list,
+.ag-theme-alpine .ag-menu-list-viewport,
+.ag-theme-alpine .ag-menu-option-text {
+  background: #020617 !important;
+  border-color: #334155 !important;
+  color: #e2e8f0 !important;
+}
+
+.ag-theme-alpine .ag-popup-child,
+.ag-theme-alpine .ag-menu,
+.ag-theme-alpine .ag-float-panel,
+.ag-theme-alpine .ag-dialog,
+.ag-theme-alpine .ag-header-cell-menu,
+.ag-theme-alpine .ag-filter-body,
+.ag-theme-alpine .ag-filter-header,
+.ag-theme-alpine .ag-filter-panel,
+.ag-theme-alpine .ag-filter-apply-panel {
+  background: #020617 !important;
+  color: #e2e8f0 !important;
+}
+
+.ag-theme-alpine .ag-menu-item:hover,
+.ag-theme-alpine .ag-set-filter-list-item:hover,
+.ag-theme-alpine .ag-menu-option:hover {
+  background: #111827 !important;
+}
+
