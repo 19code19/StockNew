@@ -68,10 +68,6 @@ const HistoricalTradePanel = ({ rowsCount, symbol }: HistoricalTradePanelProps) 
     suppressDragLeaveHidesColumns: true,
   }), []);
 
-  const onGridReady = useCallback((params: GridReadyEvent) => {
-    setGridApi(params.api);
-  }, []);
-
   useEffect(() => {
     if (!gridApi) {
       return;

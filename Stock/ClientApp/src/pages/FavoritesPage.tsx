@@ -3,7 +3,7 @@ import { Link } from 'react-router-dom';
 import { AgGridReact } from '@ag-grid-community/react';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
 import { ModuleRegistry, type ColDef, type GridApi, type GridOptions, type GridReadyEvent, type ICellRendererParams } from '@ag-grid-community/core';
-import { defaultGridOptions } from '../components/agGridHelpers';
+import { createSlug, defaultGridOptions } from '../components/agGridHelpers';
 
 ModuleRegistry.registerModules([ClientSideRowModelModule]);
 
@@ -75,7 +75,26 @@ const FavoritesPage = () => {
     );
   };
 
-  const renderRemoveButton = (params: ICellRendererParams): JSX.Element | null => {
+  const renderViewLink = (params: ICellRendererParams): JSX.Element | null => {
+    const symbol = params.value as string;
+    if (!symbol) return null;
+
+    const company = (params.data as FavoriteSymbol)?.companyName ?? '';
+    const slug = createSlug(company);
+
+    return (
+      <a
+        className="text-sky-300 underline hover:text-sky-100"
+        href={`https://www.nseindia.com/get-quote/equity/${symbol}/${slug}`}
+        target="_blank"
+        rel="noreferrer"
+      >
+        View
+      </a>
+    );
+  };
+
+  const renderFavoriteButton = (params: ICellRendererParams): JSX.Element | null => {
     const symbol = params.data?.symbol as string;
     if (!symbol) return null;
 
@@ -83,9 +102,10 @@ const FavoritesPage = () => {
       <button
         type="button"
         onClick={() => void removeFavorite(symbol)}
-        className="rounded-full bg-rose-600 px-3 py-1 text-xs font-semibold text-white transition hover:bg-rose-500"
+        className="rounded-full bg-amber-500 px-3 py-1 text-xs font-semibold text-slate-950 transition hover:bg-amber-400"
+        aria-label="Remove favorite"
       >
-        Remove
+        ★
       </button>
     );
   };
@@ -111,6 +131,15 @@ const FavoritesPage = () => {
       },
       {
         field: 'symbol',
+        colId: 'view',
+        headerName: 'View',
+        width: 90,
+        cellRenderer: renderViewLink,
+        sortable: false,
+        filter: false,
+      },
+      {
+        field: 'symbol',
         colId: 'details',
         headerName: 'Details',
         width: 100,
@@ -120,10 +149,10 @@ const FavoritesPage = () => {
       },
       {
         field: 'symbol',
-        colId: 'remove',
+        colId: 'favorite',
         headerName: 'Favorite',
-        width: 120,
-        cellRenderer: renderRemoveButton,
+        width: 90,
+        cellRenderer: renderFavoriteButton,
         sortable: false,
         filter: false,
       },
