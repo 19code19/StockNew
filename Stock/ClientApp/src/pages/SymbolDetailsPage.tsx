@@ -17,6 +17,8 @@ const formatCompanyName = (companySlug?: string) => {
 const SymbolDetailsPage = () => {
   const { symbol, companySlug } = useParams();
   const displaySymbol = symbol?.toUpperCase() ?? 'UNKNOWN';
+  const companyName = formatCompanyName(companySlug);
+  const nseQuoteUrl = companySlug ? `https://www.nseindia.com/get-quote/equity/${displaySymbol}/${companySlug}` : undefined;
   const [isFavorite, setIsFavorite] = useState(false);
   const [favoriteLoading, setFavoriteLoading] = useState(true);
 
@@ -62,7 +64,19 @@ const SymbolDetailsPage = () => {
     <div className="flex h-full w-full flex-col gap-4">
       <section className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl">
         <div className="flex flex-wrap items-center justify-between gap-3">
-          <h2 className="text-xl font-semibold text-white">Historical trades for {displaySymbol}</h2>
+          <div className="space-y-1">
+            <h2 className="text-xl font-semibold text-white">Historical trades for {displaySymbol}</h2>
+            {companyName && nseQuoteUrl && (
+              <a
+                href={nseQuoteUrl}
+                target="_blank"
+                rel="noreferrer"
+                className="inline-flex items-center text-sm font-medium text-sky-300 underline transition hover:text-sky-100"
+              >
+                {companyName}
+              </a>
+            )}
+          </div>
           <button
             type="button"
             onClick={() => void toggleFavorite()}
