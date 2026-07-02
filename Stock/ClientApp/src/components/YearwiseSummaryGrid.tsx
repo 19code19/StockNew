@@ -10,11 +10,18 @@ ModuleRegistry.registerModules([ClientSideRowModelModule, SetFilterModule]);
 
 type YearwiseSummaryGridProps = {
   data: YearwiseStockSummary[];
+  loading?: boolean;
 };
 
 const normalizeSymbol = (symbol?: string | null) => symbol?.trim().toUpperCase() ?? '';
 
-const YearwiseSummaryGrid = ({ data }: YearwiseSummaryGridProps) => {
+const formatColumnHeader = (field: string) =>
+  field
+    .replace(/([a-z0-9])([A-Z])/g, '$1 $2')
+    .replace(/_/g, ' ')
+    .replace(/^./, (char) => char.toUpperCase());
+
+const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps) => {
   const [favoriteSymbols, setFavoriteSymbols] = useState<Set<string>>(new Set());
   const [gridApi, setGridApi] = useState<GridApi | null>(null);
 
@@ -43,6 +50,11 @@ const YearwiseSummaryGrid = ({ data }: YearwiseSummaryGridProps) => {
 
     gridApi.refreshCells({ force: true, columns: ['favorite'] });
   }, [favoriteSymbols, gridApi]);
+
+  const onGridReady = useCallback((params: GridReadyEvent) => {
+    setGridApi(params.api);
+    params.api.refreshCells({ force: true, columns: ['favorite'] });
+  }, []);
 
   const toggleFavorite = useCallback(
     async (symbol: string, companyName: string, isFavorite: boolean) => {
@@ -82,6 +94,61 @@ const YearwiseSummaryGrid = ({ data }: YearwiseSummaryGridProps) => {
     [favoriteSymbols, toggleFavorite],
   );
 
+  const dynamicColumns = useMemo<ColDef[]>(() => {
+    const usedFields = new Set<string>([
+      'symbol',
+      'companyName',
+      'sector',
+      'basicIndustry',
+      'industryInfo',
+      'issueDesc',
+      'macro',
+      'tradingSegment',
+      'nameOfComplianceOfficer',
+      'indexListJson',
+      'indexName',
+      'totalTradedVolume',
+      'totalTradedValue',
+      'quantityTraded',
+      'deliveryQuantity',
+      'deliveryToTradedQuantity',
+      'totalMarketCap',
+      'yearHigh',
+      'yearLow',
+      'yesterdayChangePercent',
+      'oneWeekChangePercent',
+      'oneMonthChangePercent',
+      'threeMonthChangePercent',
+      'sixMonthChangePercent',
+      'oneYearChangePercent',
+      'applicableMargin',
+      'varMargin',
+      'adhocMargin',
+    ]);
+
+    const rowFields = data?.length ? Object.keys(data[0]) : [];
+
+    return rowFields
+      .filter((field) => !usedFields.has(field))
+      .map((field) => ({
+        field,
+        headerName: formatColumnHeader(field),
+        minWidth: 140,
+        filter: true,
+        sortable: true,
+        valueFormatter: (params) => {
+          const value = params.value;
+          if (value == null || value === '') {
+            return '';
+          }
+          if (typeof value === 'number') {
+            return Number(value).toLocaleString('en-IN', { maximumFractionDigits: 2 });
+          }
+          return String(value);
+        },
+      })) as ColDef[];
+  }, [data]);
+
   const columnDefs = useMemo<ColDef[]>(
     () => [
       ...buildCommonSymbolColumns(),
@@ -108,6 +175,12 @@ const YearwiseSummaryGrid = ({ data }: YearwiseSummaryGridProps) => {
         },
       },
       { field: 'basicIndustry', headerName: 'Industry', minWidth: 180, filter: true },
+      { field: 'industryInfo', headerName: 'Industry Info', minWidth: 220, filter: true },
+      { field: 'issueDesc', headerName: 'Issue Desc', minWidth: 220, filter: true },
+      { field: 'macro', headerName: 'Macro', minWidth: 220, filter: true },
+      { field: 'tradingSegment', headerName: 'Trading Segment', minWidth: 180, filter: true },
+      { field: 'nameOfComplianceOfficer', headerName: 'Compliance Officer', minWidth: 220, filter: true },
+      { field: 'indexListJson', headerName: 'Index List', minWidth: 220, filter: true },
       {
         field: 'indexName',
         headerName: 'Index',
@@ -131,6 +204,30 @@ const YearwiseSummaryGrid = ({ data }: YearwiseSummaryGridProps) => {
         valueFormatter: (params) => `₹${new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number)}`,
       },
       {
+        field: 'quantityTraded',
+        headerName: 'Quantity Traded',
+        minWidth: 140,
+        valueFormatter: (params) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number),
+      },
+      {
+        field: 'deliveryQuantity',
+        headerName: 'Delivery Qty',
+        minWidth: 140,
+        valueFormatter: (params) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number),
+      },
+      {
+        field: 'deliveryToTradedQuantity',
+        headerName: 'Delivery %',
+        minWidth: 140,
+        valueFormatter: (params) => `${Number(params.value ?? 0).toFixed(2)}%`,
+      },
+      {
+        field: 'totalMarketCap',
+        headerName: 'Market Cap',
+        minWidth: 140,
+        valueFormatter: (params) => `₹${new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number)}`,
+      },
+      {
         field: 'yearHigh',
         headerName: 'Year High',
         minWidth: 120,
@@ -148,17 +245,62 @@ const YearwiseSummaryGrid = ({ data }: YearwiseSummaryGridProps) => {
         minWidth: 110,
         valueFormatter: (params) => `${Number(params.value).toFixed(2)}%`,
       },
+      {
+        field: 'oneWeekChangePercent',
+        headerName: '1W %',
+        minWidth: 110,
+        valueFormatter: (params) => `${Number(params.value).toFixed(2)}%`,
+      },
+      {
+        field: 'oneMonthChangePercent',
+        headerName: '1M %',
+        minWidth: 110,
+        valueFormatter: (params) => `${Number(params.value).toFixed(2)}%`,
+      },
+      {
+        field: 'threeMonthChangePercent',
+        headerName: '3M %',
+        minWidth: 110,
+        valueFormatter: (params) => `${Number(params.value).toFixed(2)}%`,
+      },
+      {
+        field: 'sixMonthChangePercent',
+        headerName: '6M %',
+        minWidth: 110,
+        valueFormatter: (params) => `${Number(params.value).toFixed(2)}%`,
+      },
+      {
+        field: 'oneYearChangePercent',
+        headerName: '1Y %',
+        minWidth: 110,
+        valueFormatter: (params) => `${Number(params.value).toFixed(2)}%`,
+      },
+      {
+        field: 'applicableMargin',
+        headerName: 'Applicable Margin',
+        minWidth: 140,
+        valueFormatter: (params) => String(params.value ?? ''),
+      },
+      {
+        field: 'varMargin',
+        headerName: 'Var Margin',
+        minWidth: 120,
+        valueFormatter: (params) => String(params.value ?? ''),
+      },
+      {
+        field: 'adhocMargin',
+        headerName: 'Adhoc Margin',
+        minWidth: 120,
+        valueFormatter: (params) => String(params.value ?? ''),
+      },
+      ...dynamicColumns,
     ],
-    [renderFavoriteButton],
+    [dynamicColumns, renderFavoriteButton],
   );
 
   const gridOptions = useMemo<GridOptions>(() => ({
     ...defaultGridOptions,
   }), []);
-
-  const onGridReady = useCallback((params: GridReadyEvent) => {
-    setGridApi(params.api);
-  }, []);
 
   return (
     <div className="ag-theme-alpine h-full w-full bg-slate-950">
@@ -166,6 +308,7 @@ const YearwiseSummaryGrid = ({ data }: YearwiseSummaryGridProps) => {
         rowData={data}
         columnDefs={columnDefs}
         gridOptions={gridOptions}
+        loading={loading}
         onGridReady={onGridReady}
       />
     </div>

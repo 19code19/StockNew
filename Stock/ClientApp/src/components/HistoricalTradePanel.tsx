@@ -1,7 +1,7 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AgGridReact } from '@ag-grid-community/react';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
-import { ModuleRegistry, type ColDef, type GridApi, type GridOptions, type GridReadyEvent } from '@ag-grid-community/core';
+import { ModuleRegistry, type ColDef, type GridOptions, type GridReadyEvent } from '@ag-grid-community/core';
 import { defaultGridOptions } from './agGridHelpers';
 
 ModuleRegistry.registerModules([ClientSideRowModelModule]);
@@ -10,11 +10,12 @@ type HistoricalTradeRow = Record<string, unknown>;
 
 type HistoricalTradePanelProps = {
   symbol?: string | null;
+  rowsCount?: number;
 };
 
 const formatDateInput = (date: Date) => date.toISOString().slice(0, 10);
 
-const HistoricalTradePanel = ({ symbol }: HistoricalTradePanelProps) => {
+const HistoricalTradePanel = ({ symbol, rowsCount }: HistoricalTradePanelProps) => {
   const [fromDate, setFromDate] = useState(() => {
     const date = new Date();
     date.setFullYear(date.getFullYear() - 1);
@@ -27,7 +28,6 @@ const HistoricalTradePanel = ({ symbol }: HistoricalTradePanelProps) => {
   const [loaded, setLoaded] = useState(false);
 
   const [columnDefs, setColumnDefs] = useState<ColDef[]>([]);
-  const [gridApi, setGridApi] = useState<GridApi | null>(null);
 
   const createColumnDefs = (rows: HistoricalTradeRow[]) => {
     if (!rows?.length) {
@@ -67,20 +67,6 @@ const HistoricalTradePanel = ({ symbol }: HistoricalTradePanelProps) => {
     suppressDragLeaveHidesColumns: true,
   }), []);
 
-  useEffect(() => {
-    if (!gridApi) {
-      return;
-    }
-
-    if (loading) {
-      gridApi.showLoadingOverlay();
-    } else if (rows.length === 0) {
-      gridApi.showNoRowsOverlay();
-    } else {
-      gridApi.hideOverlay();
-    }
-  }, [gridApi, loading, rows.length]);
-
   const fetchHistoricalData = async (forceRefresh = false) => {
     setLoading(true);
     setError(null);
@@ -116,8 +102,8 @@ const HistoricalTradePanel = ({ symbol }: HistoricalTradePanelProps) => {
     void fetchHistoricalData(false);
   }, [symbol]);
 
-  const onGridReady = useCallback((params: GridReadyEvent) => {
-    setGridApi(params.api);
+  const onGridReady = useCallback((_params: GridReadyEvent) => {
+    // no-op; kept for compatibility with the grid lifecycle if needed later
   }, []);
 
   return (
@@ -142,18 +128,28 @@ const HistoricalTradePanel = ({ symbol }: HistoricalTradePanelProps) => {
               className="rounded-xl border border-slate-700 bg-slate-950 px-3 py-2 text-slate-100 outline-none focus:border-sky-500"
             />
           </label>
-          <button
-            onClick={() => void fetchHistoricalData(false)}
-            disabled={loading}
-            className="h-[44px] rounded-2xl bg-sky-500 px-5 text-sm font-semibold text-slate-950 transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-60"
-          >
-            Load range
-          </button>
+          <div className="flex flex-wrap gap-2 sm:justify-end">
+            <button
+              onClick={() => void fetchHistoricalData(false)}
+              disabled={loading}
+              className="h-[44px] rounded-2xl bg-sky-500 px-5 text-sm font-semibold text-slate-950 transition hover:bg-sky-400 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Load range
+            </button>
+            <button
+              onClick={() => void fetchHistoricalData(true)}
+              disabled={loading}
+              className="h-[44px] rounded-2xl border border-amber-500/40 bg-amber-500/10 px-5 text-sm font-semibold text-amber-200 transition hover:bg-amber-500/20 disabled:cursor-not-allowed disabled:opacity-60"
+            >
+              Refresh
+            </button>
+          </div>
         </div>
       </div>
 
       <div className="flex flex-wrap items-center justify-between gap-2 text-sm text-slate-300">
         <div>Loaded {rows.length} row{rows.length === 1 ? '' : 's'}</div>
+        {typeof rowsCount === 'number' ? <div className="text-slate-400">Shared summary rows: {rowsCount}</div> : null}
         {loaded && !error ? <div className="text-emerald-400">Data loaded successfully</div> : null}
       </div>
       {error ? <div className="rounded-2xl border border-rose-700 bg-rose-950/20 p-3 text-sm text-rose-200">{error}</div> : null}
@@ -167,6 +163,7 @@ const HistoricalTradePanel = ({ symbol }: HistoricalTradePanelProps) => {
           animateRows={true}
           pagination={true}
           paginationPageSize={20}
+          loading={loading}
           onGridReady={onGridReady}
         />
       </div>

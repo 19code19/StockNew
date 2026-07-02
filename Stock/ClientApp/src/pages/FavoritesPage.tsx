@@ -175,10 +175,13 @@ const FavoritesPage = () => {
 
     if (loading) {
       gridApi.showLoadingOverlay();
+      gridApi.setGridOption('loading', true);
     } else if (favorites.length === 0) {
       gridApi.showNoRowsOverlay();
+      gridApi.setGridOption('loading', false);
     } else {
       gridApi.hideOverlay();
+      gridApi.setGridOption('loading', false);
     }
   }, [favorites.length, gridApi, loading]);
 
