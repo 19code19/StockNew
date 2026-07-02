@@ -83,8 +83,8 @@ export const buildCommonSymbolColumns = ({
     headerName,
     // Give the column a bit more breathing room when a favorite icon is
     // also rendered, since it now competes with the symbol text for space.
-    minWidth: 230,
-    maxWidth: 400,
+    minWidth: 200,
+    maxWidth: 250,
     width:  100,
     pinned,
     sortable: true,
