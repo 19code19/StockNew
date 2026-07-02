@@ -61,8 +61,8 @@ const SymbolDetailsPage = () => {
   }, [companySlug, displaySymbol, isFavorite]);
 
   return (
-    <div className="flex h-full w-full flex-col gap-4">
-      <section className="rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl">
+    <div className="flex h-full min-h-0 w-full flex-col gap-4">
+      <section className="flex min-h-0 flex-1 flex-col rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-1">
             <h2 className="text-xl font-semibold text-white">Historical trades for {displaySymbol}</h2>
@@ -92,7 +92,7 @@ const SymbolDetailsPage = () => {
             <span>{favoriteLoading ? 'Saving...' : isFavorite ? 'Favorite' : 'Add to favorites'}</span>
           </button>
         </div>
-        <div className="mt-4">
+        <div className="mt-4 flex-1 min-h-0">
           <HistoricalTradePanel symbol={displaySymbol} />
         </div>
       </section>

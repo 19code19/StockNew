@@ -156,13 +156,13 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
         colId: 'favorite',
         field: 'symbol',
         headerName: 'Favorite',
-        width: 100,
+        width: 50,
         cellRenderer: renderFavoriteButton,
         sortable: false,
         filter: false,
         pinned: 'left',
       },
-      { field: 'symbol', headerName: 'SYMBOL', minWidth: 80, filter: true, pinned: 'left' },
+      { field: 'symbol', headerName: 'SYMBOL', minWidth: 50, filter: true, pinned: 'left' },
       { field: 'companyName', headerName: 'Company', minWidth: 220, filter: true },
       {
         field: 'sector',
@@ -310,6 +310,9 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
         gridOptions={gridOptions}
         loading={loading}
         onGridReady={onGridReady}
+        pagination={true}
+        paginationPageSize={100}
+        paginationPageSizeSelector={[50, 100, 200, 500, 1000, 2000, 5000,10000]}
       />
     </div>
   );

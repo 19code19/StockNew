@@ -89,7 +89,7 @@ const FavoritesPage = () => {
         target="_blank"
         rel="noreferrer"
       >
-        View
+        NSE
       </a>
     );
   };
@@ -132,7 +132,7 @@ const FavoritesPage = () => {
       {
         field: 'symbol',
         colId: 'view',
-        headerName: 'View',
+        headerName: 'NSE',
         width: 90,
         cellRenderer: renderViewLink,
         sortable: false,

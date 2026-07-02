@@ -21,7 +21,7 @@ export const renderExternalViewLink = (params: ICellRendererParams): JSX.Element
       target="_blank"
       rel="noreferrer"
     >
-      View
+      NSE
     </Link>
   );
 };
@@ -62,8 +62,8 @@ export const buildCommonSymbolColumns = (): ColDef[] => [
   {
     colId: 'view',
     field: 'symbol',
-    headerName: 'View',
-    width: 70,
+    headerName: 'NSE',
+    width: 40,
     cellRenderer: renderExternalViewLink,
     sortable: false,
     filter: false,
@@ -73,7 +73,7 @@ export const buildCommonSymbolColumns = (): ColDef[] => [
     colId: 'details',
     field: 'symbol',
     headerName: 'Details',
-    width: 80,
+    width: 40,
     cellRenderer: renderDetailsLink,
     sortable: false,
     filter: false,

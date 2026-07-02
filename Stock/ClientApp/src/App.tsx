@@ -9,16 +9,16 @@ import SymbolDetailsPage from './pages/SymbolDetailsPage';
 const App = () => (
   <div className="h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden">
     <nav className="border-b border-slate-800 bg-slate-900/90 backdrop-blur-sm">
-      <div className="flex h-20 items-center justify-between px-6">
-        <div>
-          <p className="text-sm font-semibold uppercase tracking-[0.3em] text-sky-400">NSE Stock Desk</p>
-          <h1 className="text-xl font-semibold text-white">NSE Dashboard</h1>
+      <div className="flex h-14 items-center justify-between px-4">
+        <div className="leading-none">
+          <p className="text-[10px] font-semibold uppercase tracking-[0.3em] text-sky-400">NSE Stock Desk</p>
+          <h1 className="text-lg font-semibold text-white">NSE Dashboard</h1>
         </div>
         <HeaderTabs />
       </div>
     </nav>
 
-    <main className="flex h-[calc(100vh-5rem)] w-full flex-col px-4 pb-4 pt-4">
+    <main className="flex h-[calc(100vh-3.5rem)] w-full flex-col px-3 pb-3 pt-3">
       <SummaryDataProvider>
         <Routes>
           <Route path="/" element={<YearwiseStockSummaryPage />} />

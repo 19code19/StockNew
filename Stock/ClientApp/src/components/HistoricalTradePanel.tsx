@@ -49,7 +49,8 @@ const HistoricalTradePanel = ({ symbol, rowsCount }: HistoricalTradePanelProps) 
       filter: true,
       sortable: true,
       resizable: true,
-      minWidth: 130,
+      flex: 1,
+      minWidth: 120,
       valueFormatter: (params) => {
         if (params.value == null) {
           return '';
@@ -65,6 +66,15 @@ const HistoricalTradePanel = ({ symbol, rowsCount }: HistoricalTradePanelProps) 
   const gridOptions = useMemo<GridOptions>(() => ({
     ...defaultGridOptions,
     suppressDragLeaveHidesColumns: true,
+    suppressHorizontalScroll: true,
+    defaultColDef: {
+      ...defaultGridOptions.defaultColDef,
+      flex: 1,
+      minWidth: 120,
+      resizable: true,
+      sortable: true,
+      filter: true,
+    },
   }), []);
 
   const fetchHistoricalData = async (forceRefresh = false) => {
@@ -107,7 +117,7 @@ const HistoricalTradePanel = ({ symbol, rowsCount }: HistoricalTradePanelProps) 
   }, []);
 
   return (
-    <div className="flex h-full flex-col gap-6">
+    <div className="flex h-full min-h-0 flex-col gap-6">
       <div className="rounded-2xl border border-slate-800 bg-slate-950/80 p-4">
         <div className="grid gap-4 sm:grid-cols-[1.2fr_1.2fr_auto] items-end">
           <label className="flex flex-col gap-2 text-slate-300">
@@ -154,7 +164,7 @@ const HistoricalTradePanel = ({ symbol, rowsCount }: HistoricalTradePanelProps) 
       </div>
       {error ? <div className="rounded-2xl border border-rose-700 bg-rose-950/20 p-3 text-sm text-rose-200">{error}</div> : null}
 
-      <div className="ag-theme-alpine h-[calc(100vh-18rem)] min-h-[420px] w-full rounded-2xl border border-slate-800 bg-slate-950/80">
+      <div className="ag-theme-alpine min-h-[320px] flex-1 w-full rounded-2xl border border-slate-800 bg-slate-950/80">
         <AgGridReact<HistoricalTradeRow>
           rowData={rows}
           columnDefs={columnDefs}
