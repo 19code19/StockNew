@@ -51,6 +51,14 @@ body {
   color: #e2e8f0 !important;
 }
 
+.ag-theme-alpine .ag-row.ag-row-selected-highlight {
+  background: rgba(37, 99, 235, 0.28) !important;
+}
+
+.ag-theme-alpine .ag-row.ag-row-selected-highlight .ag-cell {
+  color: #f8fafc !important;
+}
+
 .ag-theme-alpine .ag-input-field-input,
 .ag-theme-alpine .ag-filter-body input,
 .ag-theme-alpine .ag-filter-body select,

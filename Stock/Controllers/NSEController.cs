@@ -1,10 +1,15 @@
-﻿namespace Stock.Controllers;
+﻿using Microsoft.Extensions.Caching.Memory;
+
+namespace Stock.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class NSEController(NSEService nSEService) : ControllerBase
+public class NSEController(NSEService nSEService, IMemoryCache memoryCache) : ControllerBase
 {
+    private const string FavoritesCacheKey = "nse-favorites";
+    private const string HistoricalTradeCachePrefix = "nse-historical-trade";
     private readonly NSEService _nSEService = nSEService;
+    private readonly IMemoryCache _memoryCache = memoryCache;
 
     /// <summary>
     /// Fetches all NSE indices and saves them into the AllIndices table
@@ -88,13 +93,36 @@ public class NSEController(NSEService nSEService) : ControllerBase
         {
             return BadRequest("fromDate must be less than or equal to toDate");
         }
+
+        var cacheKey = $"{HistoricalTradeCachePrefix}:{fromDate:yyyy-MM-dd}:{toDate:yyyy-MM-dd}:{series}:{symbol ?? string.Empty}:{forceRefresh}";
+        if (!forceRefresh && _memoryCache.TryGetValue(cacheKey, out List<HistoricalTradeData>? cachedRows) && cachedRows is not null)
+        {
+            return Ok(cachedRows);
+        }
+
         if (!string.IsNullOrWhiteSpace(symbol))
         {
             var single = await _nSEService.GetHistoricalTradeDataForSymbol(symbol, fromDate, toDate, series, forceRefresh);
+            if (!forceRefresh)
+            {
+                _memoryCache.Set(cacheKey, single, new MemoryCacheEntryOptions
+                {
+                    AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
+                    SlidingExpiration = TimeSpan.FromMinutes(1),
+                });
+            }
             return Ok(single);
         }
 
         var result = await _nSEService.GetHistoricalTradeData(fromDate, toDate, series, forceRefresh);
+        if (!forceRefresh)
+        {
+            _memoryCache.Set(cacheKey, result, new MemoryCacheEntryOptions
+            {
+                AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
+                SlidingExpiration = TimeSpan.FromMinutes(1),
+            });
+        }
         return Ok(result);
     }
 
@@ -136,6 +164,7 @@ public class NSEController(NSEService nSEService) : ControllerBase
         }
 
         var count = await _nSEService.AddFavoriteSymbol(symbol, companyName);
+        _memoryCache.Remove(FavoritesCacheKey);
         return Ok(count);
     }
 
@@ -149,6 +178,7 @@ public class NSEController(NSEService nSEService) : ControllerBase
         }
 
         var count = await _nSEService.RemoveFavoriteSymbol(symbol);
+        _memoryCache.Remove(FavoritesCacheKey);
         return Ok(count);
     }
 
@@ -156,7 +186,17 @@ public class NSEController(NSEService nSEService) : ControllerBase
     [ProducesResponseType(typeof(List<FavoriteSymbolEntity>), 200)]
     public async Task<IActionResult> GetFavorites()
     {
+        if (_memoryCache.TryGetValue(FavoritesCacheKey, out List<FavoriteSymbolEntity>? cachedFavorites) && cachedFavorites is not null)
+        {
+            return Ok(cachedFavorites);
+        }
+
         var favorites = await _nSEService.GetFavoriteSymbols();
+        _memoryCache.Set(FavoritesCacheKey, favorites, new MemoryCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
+            SlidingExpiration = TimeSpan.FromMinutes(1),
+        });
         return Ok(favorites);
     }
 

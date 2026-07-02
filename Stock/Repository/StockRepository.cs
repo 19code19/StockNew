@@ -125,22 +125,37 @@ public class StockRepository(IDbContextFactory<StockDbContext> contextFactory) :
 
     public async Task<int> SaveHistoricalTradeDataAsync(IEnumerable<HistoricalTradeData> data, string symbol, DateTime fromDate, DateTime toDate, string series = "EQ")
     {
-        await using var context = _contextFactory.CreateDbContext();
+        if (string.IsNullOrWhiteSpace(symbol))
+        {
+            return 0;
+        }
+
         var fromDateString = fromDate.ToString("yyyy-MM-dd");
         var toDateString = toDate.ToString("yyyy-MM-dd");
-
+        var batchCreatedAt = DateTime.UtcNow;
         var entities = data.Select(x => Stock.Helpers.Mapper.ToEntity<HistoricalTradeData, HistoricalTradeDataEntity>(x)).ToList();
+
         foreach (var entity in entities)
         {
             entity.Symbol = symbol;
             entity.FromDate = fromDateString;
             entity.ToDate = toDateString;
             entity.Series = series;
+            entity.BatchCreatedAt = batchCreatedAt;
         }
 
-        context.HistoricalTradeDataEntities.RemoveRange(context.HistoricalTradeDataEntities.Where(x => x.Symbol == symbol));
+        await using var context = _contextFactory.CreateDbContext();
+        await using var transaction = await context.Database.BeginTransactionAsync();
+
         await context.HistoricalTradeDataEntities.AddRangeAsync(entities);
-        return await context.SaveChangesAsync();
+        await context.SaveChangesAsync();
+
+        await context.HistoricalTradeDataEntities
+            .Where(x => x.Symbol == symbol && x.FromDate == fromDateString && x.ToDate == toDateString && x.Series == series)
+            .ExecuteDeleteAsync();
+
+        await transaction.CommitAsync();
+        return entities.Count;
     }
 
     public async Task<IReadOnlyList<HistoricalTradeData>> GetSavedHistoricalTradeDataAsync(string symbol, DateTime fromDate, DateTime toDate, string series = "EQ")

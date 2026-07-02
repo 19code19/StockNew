@@ -21,4 +21,5 @@ public class HistoricalTradeDataEntity
     public decimal ChTradeLowPrice { get; set; }
     public string MTimestamp { get; set; } = string.Empty;
     public decimal Vwap { get; set; }
+    public DateTime BatchCreatedAt { get; set; }
 }
