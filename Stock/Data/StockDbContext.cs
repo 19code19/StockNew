@@ -40,6 +40,8 @@ public class StockDbContext(DbContextOptions<StockDbContext> options) : DbContex
     public DbSet<CorpActionEntity> CorpActions => Set<CorpActionEntity>();
     public DbSet<CorporateAnnouncementEntity> CorporateAnnouncements => Set<CorporateAnnouncementEntity>();
     public DbSet<YearwiseStockSummaryEntity> YearwiseStockSummaries => Set<YearwiseStockSummaryEntity>();
+    public DbSet<AiRecommendationEntity> AiRecommendations => Set<AiRecommendationEntity>();
+    public DbSet<AiRecommendationViewEntity> AiRecommendationViews => Set<AiRecommendationViewEntity>();
     public DbSet<FavoriteSymbolEntity> FavoriteSymbolEntities => Set<FavoriteSymbolEntity>();
 
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -85,5 +87,9 @@ public class StockDbContext(DbContextOptions<StockDbContext> options) : DbContex
         modelBuilder.Entity<YearwiseStockSummaryEntity>()
             .HasNoKey()
             .ToView("vw_YearwiseStockSummary");
+
+        modelBuilder.Entity<AiRecommendationViewEntity>()
+            .HasNoKey()
+            .ToView("vw_AiRecommendations");
     }
 }

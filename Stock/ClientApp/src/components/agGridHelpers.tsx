@@ -58,25 +58,74 @@ export const defaultGridOptions: GridOptions = {
     '<div class="ag-overlay-loading-center text-slate-100"><div class="rounded-3xl border border-slate-700 bg-slate-950/95 px-6 py-5 shadow-lg shadow-slate-950/40"><div class="text-sm font-medium">No records found</div></div></div>',
 };
 
-export const buildCommonSymbolColumns = (): ColDef[] => [
+type CommonSymbolColumnOptions = {
+  field?: string;
+  headerName?: string;
+  pinned?: 'left' | 'right';
+  includeFavorite?: boolean;
+  renderFavorite?: (params: ICellRendererParams) => JSX.Element | null;
+  showNse?: boolean;
+  showDetails?: boolean;
+};
+
+export const buildCommonSymbolColumns = ({
+  field = 'symbol',
+  headerName = 'Symbol',
+  pinned = 'left',
+  includeFavorite = false,
+  renderFavorite,
+  showNse = true,
+  showDetails = true,
+}: CommonSymbolColumnOptions = {}): ColDef[] => [
   {
-    colId: 'view',
-    field: 'symbol',
-    headerName: 'NSE',
-    width: 40,
-    cellRenderer: renderExternalViewLink,
-    sortable: false,
-    filter: false,
-    pinned: 'left',
-  },
-  {
-    colId: 'details',
-    field: 'symbol',
-    headerName: 'Details',
-    width: 40,
-    cellRenderer: renderDetailsLink,
-    sortable: false,
-    filter: false,
-    pinned: 'left',
+    colId: 'symbol',
+    field,
+    headerName,
+    // Give the column a bit more breathing room when a favorite icon is
+    // also rendered, since it now competes with the symbol text for space.
+    minWidth: 230,
+    maxWidth: 400,
+    width:  100,
+    pinned,
+    sortable: true,
+    filter: true,
+    flex: 1,
+    cellRenderer: (params: ICellRendererParams) => {
+      const symbol = (params.value as string | undefined) ?? '';
+      const company = (params.data as { companyName?: string })?.companyName ?? '';
+      const slug = createSlug(company);
+
+      return (
+        // gap-6 replaces the old single-sided `ml-4` so there's guaranteed
+        // breathing room between the NSE/View links and the right-hand block,
+        // regardless of how much space the right block ends up using.
+        <div className="flex min-w-0 items-center gap-4 py-1 text-[11px]">
+          <div className="flex shrink-0 items-center gap-3">
+            {showNse && symbol ? (
+              <Link
+                className="shrink-0 text-sky-300 hover:text-sky-100 underline"
+                to={`https://www.nseindia.com/get-quote/equity/${symbol}/${slug}`}
+                target="_blank"
+                rel="noreferrer"
+              >
+                NSE
+              </Link>
+            ) : null}
+            {includeFavorite && renderFavorite ? (
+              <span className="shrink-0">{renderFavorite(params)}</span>
+            ) : null}
+          </div>
+          <div className="flex min-w-0 flex-1 items-center pr-1">
+            {showDetails && symbol ? (
+              <Link className="min-w-0 truncate font-semibold text-sky-300 underline transition-colors hover:text-sky-100" to={`/details/${symbol}/${slug}`}>
+                {symbol}
+              </Link>
+            ) : (
+              <span className="min-w-0 truncate font-semibold text-slate-100">{symbol}</span>
+            )}
+          </div>
+        </div>
+      );
+    },
   },
 ];

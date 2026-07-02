@@ -48,12 +48,12 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
       return;
     }
 
-    gridApi.refreshCells({ force: true, columns: ['favorite'] });
+    gridApi.refreshCells({ force: true, columns: ['symbol'] });
   }, [favoriteSymbols, gridApi]);
 
   const onGridReady = useCallback((params: GridReadyEvent) => {
     setGridApi(params.api);
-    params.api.refreshCells({ force: true, columns: ['favorite'] });
+    params.api.refreshCells({ force: true, columns: ['symbol'] });
   }, []);
 
   const toggleFavorite = useCallback(
@@ -151,18 +151,7 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
 
   const columnDefs = useMemo<ColDef[]>(
     () => [
-      ...buildCommonSymbolColumns(),
-      {
-        colId: 'favorite',
-        field: 'symbol',
-        headerName: 'Favorite',
-        width: 50,
-        cellRenderer: renderFavoriteButton,
-        sortable: false,
-        filter: false,
-        pinned: 'left',
-      },
-      { field: 'symbol', headerName: 'SYMBOL', minWidth: 50, filter: true, pinned: 'left' },
+      ...buildCommonSymbolColumns({ includeFavorite: true, renderFavorite: renderFavoriteButton }),
       { field: 'companyName', headerName: 'Company', minWidth: 220, filter: true },
       {
         field: 'sector',

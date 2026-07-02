@@ -1,0 +1,66 @@
+using System.IO;
+using Microsoft.AspNetCore.Hosting;
+using Microsoft.AspNetCore.Mvc;
+using Stock.Data;
+using Stock.Model;
+using Stock.Repository;
+
+namespace Stock.Controllers;
+
+[Route("api/[controller]")]
+[ApiController]
+public class AiRecommendationController(IStockRepository stockRepository, IWebHostEnvironment environment) : ControllerBase
+{
+    private readonly IStockRepository _stockRepository = stockRepository;
+    private readonly IWebHostEnvironment _environment = environment;
+
+    [HttpGet]
+    public async Task<ActionResult<IEnumerable<AiRecommendationEntity>>> Get()
+    {
+        var rows = await _stockRepository.GetAiRecommendationsAsync();
+        return Ok(rows);
+    }
+
+    [HttpGet("view")]
+    public async Task<ActionResult<IEnumerable<AiRecommendationViewEntity>>> GetView()
+    {
+        var rows = await _stockRepository.GetAiRecommendationViewsAsync();
+        return Ok(rows);
+    }
+
+    [HttpGet("format")]
+    public IActionResult GetFormat()
+    {
+        var templatePath = Path.Combine(_environment.ContentRootPath, "AI", "Template", "Format.json");
+        if (!System.IO.File.Exists(templatePath))
+        {
+            return NotFound(new { error = "Template file not found." });
+        }
+
+        var json = System.IO.File.ReadAllText(templatePath);
+        return Content(json, "application/json");
+    }
+
+    [HttpPost]
+    public async Task<ActionResult> Post([FromBody] IEnumerable<AiRecommendationDto> recommendations)
+    {
+        if (recommendations is null || !recommendations.Any())
+        {
+            return BadRequest("Request body must contain at least one recommendation.");
+        }
+
+        var entities = recommendations.Select(x => new AiRecommendationEntity
+        {
+            Rank = x.Rank,
+            Symbol = x.Symbol,
+            Category = x.Category,
+            Score = x.Score,
+            Source = x.Source,
+            Reason = x.Reason,
+            CreatedAt = DateTime.UtcNow,
+        }).ToList();
+
+        var savedCount = await _stockRepository.SaveAiRecommendationsAsync(entities);
+        return CreatedAtAction(nameof(Get), new { count = savedCount }, new { saved = savedCount });
+    }
+}

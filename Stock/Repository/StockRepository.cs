@@ -215,6 +215,25 @@ public class StockRepository(IDbContextFactory<StockDbContext> contextFactory) :
         return await context.SaveChangesAsync();
     }
 
+    public async Task<int> SaveAiRecommendationsAsync(IEnumerable<AiRecommendationEntity> recommendations)
+    {
+        await using var context = _contextFactory.CreateDbContext();
+        await context.AiRecommendations.AddRangeAsync(recommendations);
+        return await context.SaveChangesAsync();
+    }
+
+    public async Task<IReadOnlyList<AiRecommendationEntity>> GetAiRecommendationsAsync()
+    {
+        await using var context = _contextFactory.CreateDbContext();
+        return await context.AiRecommendations.AsNoTracking().OrderBy(x => x.Rank).ToListAsync();
+    }
+
+    public async Task<IReadOnlyList<AiRecommendationViewEntity>> GetAiRecommendationViewsAsync()
+    {
+        await using var context = _contextFactory.CreateDbContext();
+        return await context.AiRecommendationViews.AsNoTracking().OrderBy(x => x.Rank).ToListAsync();
+    }
+
     public async Task<int> AddFavoriteSymbolAsync(string symbol, string companyName)
     {
         await using var context = _contextFactory.CreateDbContext();

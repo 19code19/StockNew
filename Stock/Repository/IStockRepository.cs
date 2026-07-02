@@ -1,3 +1,5 @@
+using Stock.Data;
+
 namespace Stock.Repository;
 
 public interface IStockRepository
@@ -13,6 +15,9 @@ public interface IStockRepository
     Task<int> SaveAllIndicesAsync(IEnumerable<IndicesData> data);
     Task<int> SaveShareholdingPatternAsync(string symbol, IDictionary<string, ShareholdingPatternEntry>? data);
     Task<int> SavePeerComparisonDataAsync(string symbol, string quarter, IEnumerable<PeerComparisonData>? data);
+    Task<int> SaveAiRecommendationsAsync(IEnumerable<AiRecommendationEntity> recommendations);
+    Task<IReadOnlyList<AiRecommendationEntity>> GetAiRecommendationsAsync();
+    Task<IReadOnlyList<AiRecommendationViewEntity>> GetAiRecommendationViewsAsync();
     Task<int> AddFavoriteSymbolAsync(string symbol, string companyName);
     Task<int> RemoveFavoriteSymbolAsync(string symbol);
     Task<IReadOnlyList<FavoriteSymbolEntity>> GetFavoriteSymbolsAsync();
