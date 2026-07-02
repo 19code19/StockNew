@@ -45,11 +45,9 @@ public class YearwiseStockSummaryEntity
     public string VarMargin { get; set; } = string.Empty;
     public string ApplicableMargin { get; set; } = string.Empty;
     public string AdhocMargin { get; set; } = string.Empty;
-    public string? IssueDesc { get; set; }
     public string Macro { get; set; } = string.Empty;
     public string Sector { get; set; } = string.Empty;
     public string IndustryInfo { get; set; } = string.Empty;
-    public string IndexListJson { get; set; } = "[]";
     public string TradingSegment { get; set; } = string.Empty;
     public string? NameOfComplianceOfficer { get; set; }
 

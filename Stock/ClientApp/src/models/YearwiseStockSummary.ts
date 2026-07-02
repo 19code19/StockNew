@@ -22,11 +22,9 @@ export interface YearwiseStockSummary {
   varMargin: string;
   applicableMargin: string;
   adhocMargin: string;
-  issueDesc: string | null;
   macro: string;
   sector: string;
   industryInfo: string;
-  indexListJson: string;
   tradingSegment: string;
   nameOfComplianceOfficer: string | null;
   yearHighDt: string | null;

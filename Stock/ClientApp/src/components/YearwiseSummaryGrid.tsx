@@ -21,6 +21,33 @@ const formatColumnHeader = (field: string) =>
     .replace(/_/g, ' ')
     .replace(/^./, (char) => char.toUpperCase());
 
+const formatDisplayValue = (value: unknown) => {
+  if (value == null || value === '') {
+    return '';
+  }
+
+  if (typeof value === 'number' && Number.isFinite(value)) {
+    return new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(value);
+  }
+
+  if (typeof value === 'boolean') {
+    return value ? 'true' : 'false';
+  }
+
+  return String(value);
+};
+
+const getTooltipValue = (params: any) => formatDisplayValue(params.value);
+
+const createCompactColumn = (field: string, headerName: string, options: Partial<ColDef> = {}) => ({
+  field,
+  headerName,
+  wrapHeaderText: true,
+  autoHeaderHeight: true,
+  tooltipValueGetter: (params: any) => getTooltipValue(params),
+  ...options,
+});
+
 const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps) => {
   const [favoriteSymbols, setFavoriteSymbols] = useState<Set<string>>(new Set());
   const [gridApi, setGridApi] = useState<GridApi | null>(null);
@@ -101,11 +128,9 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
       'sector',
       'basicIndustry',
       'industryInfo',
-      'issueDesc',
       'macro',
       'tradingSegment',
       'nameOfComplianceOfficer',
-      'indexListJson',
       'indexName',
       'totalTradedVolume',
       'totalTradedValue',
@@ -121,6 +146,18 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
       'threeMonthChangePercent',
       'sixMonthChangePercent',
       'oneYearChangePercent',
+      'twoYearChangePercent',
+      'threeYearChangePercent',
+      'fiveYearChangePercent',
+      'indexYesterdayChangePercent',
+      'indexOneWeekChangePercent',
+      'indexOneMonthChangePercent',
+      'indexThreeMonthChangePercent',
+      'indexSixMonthChangePercent',
+      'indexOneYearChangePercent',
+      'indexTwoYearChangePercent',
+      'indexThreeYearChangePercent',
+      'indexFiveYearChangePercent',
       'applicableMargin',
       'varMargin',
       'adhocMargin',
@@ -130,165 +167,243 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
 
     return rowFields
       .filter((field) => !usedFields.has(field))
-      .map((field) => ({
-        field,
-        headerName: formatColumnHeader(field),
-        minWidth: 140,
-        filter: true,
-        sortable: true,
-        valueFormatter: (params) => {
-          const value = params.value;
-          if (value == null || value === '') {
-            return '';
-          }
-          if (typeof value === 'number') {
-            return Number(value).toLocaleString('en-IN', { maximumFractionDigits: 2 });
-          }
-          return String(value);
-        },
-      })) as ColDef[];
+      .map((field) => {
+        const sampleValue = data?.[0]?.[field as keyof YearwiseStockSummary];
+        const numericConfig = typeof sampleValue === 'number'
+          ? { minWidth: 72, maxWidth: 96, width: 82 }
+          : { minWidth: 110, maxWidth: 180, width: 120 };
+
+        return createCompactColumn(field, formatColumnHeader(field), {
+          ...numericConfig,
+          filter: true,
+          sortable: true,
+          valueFormatter: (params: any) => formatDisplayValue(params.value),
+        }) as ColDef;
+      }) as ColDef[];
   }, [data]);
 
-  const columnDefs = useMemo<ColDef[]>(
-    () => [
-      ...buildCommonSymbolColumns({ includeFavorite: true, renderFavorite: renderFavoriteButton }),
-      { field: 'companyName', headerName: 'Company', minWidth: 220, filter: true },
-      {
-        field: 'sector',
-        headerName: 'Sector',
-        minWidth: 180,
+  const columnDefs = useMemo<ColDef[]>(() => {
+    const commonSymbolColumns = buildCommonSymbolColumns({ includeFavorite: true, renderFavorite: renderFavoriteButton }).map((col) => ({
+      ...col,
+      wrapHeaderText: true,
+      autoHeaderHeight: true,
+      tooltipValueGetter: (params: any) => getTooltipValue(params),
+    }));
+
+    return [
+      ...commonSymbolColumns,
+      createCompactColumn('companyName', 'Company', { minWidth: 160, maxWidth: 220, filter: true }),
+      createCompactColumn('sector', 'Sector', {
+        minWidth: 130,
+        maxWidth: 180,
         filter: 'agSetColumnFilter',
         filterParams: {
           applyMiniFilterWhileTyping: true,
           suppressSelectAll: false,
         },
-      },
-      { field: 'basicIndustry', headerName: 'Industry', minWidth: 180, filter: true },
-      { field: 'industryInfo', headerName: 'Industry Info', minWidth: 220, filter: true },
-      { field: 'issueDesc', headerName: 'Issue Desc', minWidth: 220, filter: true },
-      { field: 'macro', headerName: 'Macro', minWidth: 220, filter: true },
-      { field: 'tradingSegment', headerName: 'Trading Segment', minWidth: 180, filter: true },
-      { field: 'nameOfComplianceOfficer', headerName: 'Compliance Officer', minWidth: 220, filter: true },
-      { field: 'indexListJson', headerName: 'Index List', minWidth: 220, filter: true },
-      {
-        field: 'indexName',
-        headerName: 'Index',
-        minWidth: 140,
+      }),
+      createCompactColumn('basicIndustry', 'Industry', { minWidth: 130, maxWidth: 180, filter: true }),
+      createCompactColumn('industryInfo', 'Industry Info', { minWidth: 150, maxWidth: 220, filter: true }),
+      createCompactColumn('macro', 'Macro', { minWidth: 150, maxWidth: 220, filter: true }),
+      createCompactColumn('tradingSegment', 'Trading Segment', { minWidth: 130, maxWidth: 180, filter: true }),
+      createCompactColumn('indexName', 'Index', {
+        minWidth: 110,
+        maxWidth: 160,
         filter: 'agSetColumnFilter',
         filterParams: {
           applyMiniFilterWhileTyping: true,
           suppressSelectAll: false,
         },
-      },
-      {
-        field: 'totalTradedVolume',
-        headerName: 'Volume',
-        minWidth: 140,
-        valueFormatter: (params) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number),
-      },
-      {
-        field: 'totalTradedValue',
-        headerName: 'Turnover',
-        minWidth: 140,
-        valueFormatter: (params) => `₹${new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number)}`,
-      },
-      {
-        field: 'quantityTraded',
-        headerName: 'Quantity Traded',
-        minWidth: 140,
-        valueFormatter: (params) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number),
-      },
-      {
-        field: 'deliveryQuantity',
-        headerName: 'Delivery Qty',
-        minWidth: 140,
-        valueFormatter: (params) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number),
-      },
-      {
-        field: 'deliveryToTradedQuantity',
-        headerName: 'Delivery %',
-        minWidth: 140,
-        valueFormatter: (params) => `${Number(params.value ?? 0).toFixed(2)}%`,
-      },
-      {
-        field: 'totalMarketCap',
-        headerName: 'Market Cap',
-        minWidth: 140,
-        valueFormatter: (params) => `₹${new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number)}`,
-      },
-      {
-        field: 'yearHigh',
-        headerName: 'Year High',
-        minWidth: 120,
-        valueFormatter: (params) => `₹${new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number)}`,
-      },
-      {
-        field: 'yearLow',
-        headerName: 'Year Low',
-        minWidth: 120,
-        valueFormatter: (params) => `₹${new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number)}`,
-      },
-      {
-        field: 'yesterdayChangePercent',
-        headerName: '1D %',
-        minWidth: 110,
-        valueFormatter: (params) => `${Number(params.value).toFixed(2)}%`,
-      },
-      {
-        field: 'oneWeekChangePercent',
-        headerName: '1W %',
-        minWidth: 110,
-        valueFormatter: (params) => `${Number(params.value).toFixed(2)}%`,
-      },
-      {
-        field: 'oneMonthChangePercent',
-        headerName: '1M %',
-        minWidth: 110,
-        valueFormatter: (params) => `${Number(params.value).toFixed(2)}%`,
-      },
-      {
-        field: 'threeMonthChangePercent',
-        headerName: '3M %',
-        minWidth: 110,
-        valueFormatter: (params) => `${Number(params.value).toFixed(2)}%`,
-      },
-      {
-        field: 'sixMonthChangePercent',
-        headerName: '6M %',
-        minWidth: 110,
-        valueFormatter: (params) => `${Number(params.value).toFixed(2)}%`,
-      },
-      {
-        field: 'oneYearChangePercent',
-        headerName: '1Y %',
-        minWidth: 110,
-        valueFormatter: (params) => `${Number(params.value).toFixed(2)}%`,
-      },
-      {
-        field: 'applicableMargin',
-        headerName: 'Applicable Margin',
-        minWidth: 140,
-        valueFormatter: (params) => String(params.value ?? ''),
-      },
-      {
-        field: 'varMargin',
-        headerName: 'Var Margin',
-        minWidth: 120,
-        valueFormatter: (params) => String(params.value ?? ''),
-      },
-      {
-        field: 'adhocMargin',
-        headerName: 'Adhoc Margin',
-        minWidth: 120,
-        valueFormatter: (params) => String(params.value ?? ''),
-      },
+      }),
+      createCompactColumn('totalTradedVolume', 'Volume', {
+        minWidth: 78,
+        maxWidth: 100,
+        width: 84,
+        valueFormatter: (params: any) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number),
+      }),
+      createCompactColumn('totalTradedValue', 'Turnover', {
+        minWidth: 84,
+        maxWidth: 106,
+        width: 90,
+        valueFormatter: (params: any) => `₹${new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number)}`,
+      }),
+      createCompactColumn('quantityTraded', 'Qty Traded', {
+        minWidth: 78,
+        maxWidth: 100,
+        width: 84,
+        valueFormatter: (params: any) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number),
+      }),
+      createCompactColumn('deliveryQuantity', 'Delivery Qty', {
+        minWidth: 78,
+        maxWidth: 100,
+        width: 84,
+        valueFormatter: (params: any) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number),
+      }),
+      createCompactColumn('deliveryToTradedQuantity', 'Delivery %', {
+        minWidth: 74,
+        maxWidth: 90,
+        width: 80,
+        valueFormatter: (params: any) => `${Number(params.value ?? 0).toFixed(2)}%`,
+      }),
+      createCompactColumn('totalMarketCap', 'Market Cap', {
+        minWidth: 84,
+        maxWidth: 106,
+        width: 90,
+        valueFormatter: (params: any) => `₹${new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number)}`,
+      }),
+      createCompactColumn('yearHigh', 'Year High', {
+        minWidth: 74,
+        maxWidth: 92,
+        width: 80,
+        valueFormatter: (params: any) => `₹${new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number)}`,
+      }),
+      createCompactColumn('yearLow', 'Year Low', {
+        minWidth: 74,
+        maxWidth: 92,
+        width: 80,
+        valueFormatter: (params: any) => `₹${new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number)}`,
+      }),
+      createCompactColumn('yesterdayChangePercent', 'One Day', {
+        minWidth: 78,
+        maxWidth: 92,
+        width: 84,
+        valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
+      }),
+      createCompactColumn('oneWeekChangePercent', 'One Week', {
+        minWidth: 84,
+        maxWidth: 98,
+        width: 90,
+        valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
+      }),
+      createCompactColumn('oneMonthChangePercent', 'One Month', {
+        minWidth: 90,
+        maxWidth: 106,
+        width: 96,
+        valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
+      }),
+      createCompactColumn('threeMonthChangePercent', 'Three Month', {
+        minWidth: 96,
+        maxWidth: 112,
+        width: 102,
+        valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
+      }),
+      createCompactColumn('sixMonthChangePercent', 'Six Month', {
+        minWidth: 96,
+        maxWidth: 112,
+        width: 102,
+        valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
+      }),
+      createCompactColumn('oneYearChangePercent', 'One Year', {
+        minWidth: 96,
+        maxWidth: 112,
+        width: 102,
+        valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
+      }),
+      createCompactColumn('twoYearChangePercent', 'Two Year', {
+        minWidth: 96,
+        maxWidth: 112,
+        width: 102,
+        valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
+      }),
+      createCompactColumn('threeYearChangePercent', 'Three Year', {
+        minWidth: 96,
+        maxWidth: 112,
+        width: 102,
+        valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
+      }),
+      createCompactColumn('fiveYearChangePercent', 'Five Year', {
+        minWidth: 96,
+        maxWidth: 112,
+        width: 102,
+        valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
+      }),
+      createCompactColumn('indexYesterdayChangePercent', 'Index One Day', {
+        minWidth: 78,
+        maxWidth: 92,
+        width: 84,
+        valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
+      }),
+      createCompactColumn('indexOneWeekChangePercent', 'Index One Week', {
+        minWidth: 84,
+        maxWidth: 98,
+        width: 90,
+        valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
+      }),
+      createCompactColumn('indexOneMonthChangePercent', 'Index One Month', {
+        minWidth: 90,
+        maxWidth: 106,
+        width: 96,
+        valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
+      }),
+      createCompactColumn('indexThreeMonthChangePercent', 'Index Three Month', {
+        minWidth: 96,
+        maxWidth: 112,
+        width: 102,
+        valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
+      }),
+      createCompactColumn('indexSixMonthChangePercent', 'Index Six Month', {
+        minWidth: 96,
+        maxWidth: 112,
+        width: 102,
+        valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
+      }),
+      createCompactColumn('indexOneYearChangePercent', 'Index One Year', {
+        minWidth: 96,
+        maxWidth: 112,
+        width: 102,
+        valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
+      }),
+      createCompactColumn('indexTwoYearChangePercent', 'Index Two Year', {
+        minWidth: 96,
+        maxWidth: 112,
+        width: 102,
+        valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
+      }),
+      createCompactColumn('indexThreeYearChangePercent', 'Index Three Year', {
+        minWidth: 96,
+        maxWidth: 112,
+        width: 102,
+        valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
+      }),
+      createCompactColumn('indexFiveYearChangePercent', 'Index Five Year', {
+        minWidth: 96,
+        maxWidth: 112,
+        width: 102,
+        valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
+      }),
+      createCompactColumn('applicableMargin', 'Applicable Margin', {
+        minWidth: 84,
+        maxWidth: 110,
+        width: 90,
+        valueFormatter: (params: any) => String(params.value ?? ''),
+      }),
+      createCompactColumn('varMargin', 'Var Margin', {
+        minWidth: 74,
+        maxWidth: 96,
+        width: 80,
+        valueFormatter: (params: any) => String(params.value ?? ''),
+      }),
+      createCompactColumn('adhocMargin', 'Adhoc Margin', {
+        minWidth: 74,
+        maxWidth: 96,
+        width: 80,
+        valueFormatter: (params: any) => String(params.value ?? ''),
+      }),
       ...dynamicColumns,
-    ],
-    [dynamicColumns, renderFavoriteButton],
-  );
+      createCompactColumn('nameOfComplianceOfficer', 'Compliance Officer', { minWidth: 150, maxWidth: 220, filter: true }),
+    ];
+  }, [dynamicColumns, renderFavoriteButton]);
 
   const gridOptions = useMemo<GridOptions>(() => ({
     ...defaultGridOptions,
+    defaultColDef: {
+      ...defaultGridOptions.defaultColDef,
+      wrapHeaderText: true,
+      autoHeaderHeight: true,
+      minWidth: 78,
+      maxWidth: 220,
+      tooltipValueGetter: (params: any) => getTooltipValue(params),
+    },
   }), []);
 
   return (
