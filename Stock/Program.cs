@@ -29,7 +29,12 @@ builder.Services.AddAutoMapper(cfg => cfg.AddProfile<MappingProfile>());
 
 // Register DbContext factory so parallel work can create isolated contexts
 builder.Services.AddDbContextFactory<StockDbContext>(options =>
-    options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+    options.UseSqlServer(
+        builder.Configuration.GetConnectionString("DefaultConnection"),
+        sqlOptions => sqlOptions.EnableRetryOnFailure(
+            maxRetryCount: 5,
+            maxRetryDelay: TimeSpan.FromSeconds(10),
+            errorNumbersToAdd: null)));
 
 // Register repository and services as transient to avoid sharing a single instance across concurrent work
 builder.Services.AddTransient<IStockRepository, StockRepository>();
