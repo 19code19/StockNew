@@ -222,6 +222,13 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
         minWidth: 90,
         maxWidth: 100,
         width: 120,
+        filter: 'agNumberColumnFilter',
+        filterParams: {
+          defaultOption: 'inRange',
+          filterOptions: ['inRange', 'equals', 'greaterThan', 'lessThan'],
+          buttons: ['reset', 'apply'],
+          closeOnApply: true,
+        },
         valueFormatter: (params: any) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number),
       }),
       createCompactColumn('deliveryQuantity', 'Delivery Qty', {
