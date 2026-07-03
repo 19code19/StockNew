@@ -240,6 +240,7 @@ public class StockRepository(IDbContextFactory<StockDbContext> contextFactory) :
     public async Task<int> SaveAiRecommendationsAsync(IEnumerable<AiRecommendationEntity> recommendations)
     {
         await using var context = _contextFactory.CreateDbContext();
+        await context.AiRecommendations.ExecuteDeleteAsync();
         await context.AiRecommendations.AddRangeAsync(recommendations);
         return await context.SaveChangesAsync();
     }
