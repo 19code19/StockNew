@@ -1475,10 +1475,6 @@ namespace Stock.Migrations
                     b.Property<decimal>("IndexOneWeekChangePercent")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("IndexOneWeekDate")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<decimal>("IndexOneYearChangePercent")
                         .HasColumnType("decimal(18,2)");
 
@@ -1536,50 +1532,13 @@ namespace Stock.Migrations
 
             modelBuilder.Entity("Stock.Data.YearwiseStockSummaryEntity", b =>
                 {
-                    b.Property<string>("AdhocMargin")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("ApplicableMargin")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("AveragePrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("BasePrice")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<string>("BasicIndustry")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("ClosePrice")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("CmAnnualVolatility")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("CmDailyVolatility")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("CompanyName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("DayHigh")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("DayLow")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<long>("DeliveryQuantity")
-                        .HasColumnType("bigint");
-
-                    b.Property<decimal>("DeliveryToTradedQuantity")
-                        .HasColumnType("decimal(18,2)");
 
                     b.Property<decimal>("FiveYearChangePercent")
                         .HasColumnType("decimal(18,2)");
@@ -1634,17 +1593,8 @@ namespace Stock.Migrations
                     b.Property<string>("IssueDesc")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long>("IssuedSize")
-                        .HasColumnType("bigint");
-
-                    b.Property<decimal>("LastPrice")
-                        .HasColumnType("decimal(18,2)");
-
                     b.Property<string>("Macro")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("NameOfComplianceOfficer")
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("OneMonthChangePercent")
@@ -1653,24 +1603,8 @@ namespace Stock.Migrations
                     b.Property<decimal>("OneWeekChangePercent")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<string>("OneWeekDate")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<decimal>("OneYearChangePercent")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("Open")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("PChange")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("PreviousClose")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<long>("QuantityTraded")
-                        .HasColumnType("bigint");
 
                     b.Property<string>("Sector")
                         .IsRequired()
@@ -1689,39 +1623,8 @@ namespace Stock.Migrations
                     b.Property<decimal>("ThreeYearChangePercent")
                         .HasColumnType("decimal(18,2)");
 
-                    b.Property<decimal>("TotalMarketCap")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<decimal>("TotalTradedValue")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<long>("TotalTradedVolume")
-                        .HasColumnType("bigint");
-
-                    b.Property<string>("TradingSegment")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
                     b.Property<decimal>("TwoYearChangePercent")
                         .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("VarMargin")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("YearHigh")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("YearHighDt")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<decimal>("YearLow")
-                        .HasColumnType("decimal(18,2)");
-
-                    b.Property<string>("YearLowDt")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(max)");
 
                     b.Property<decimal>("YesterdayChangePercent")
                         .HasColumnType("decimal(18,2)");

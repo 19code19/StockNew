@@ -1,38 +1,11 @@
 export interface YearwiseStockSummary {
   symbol: string;
   companyName: string;
-  pChange: number;
-  open: number;
-  dayHigh: number;
-  dayLow: number;
-  previousClose: number;
-  averagePrice: number;
-  basePrice: number;
-  closePrice: number;
-  lastPrice: number;
-  issuedSize: number;
-  totalTradedVolume: number;
-  totalTradedValue: number;
-  deliveryToTradedQuantity: number;
-  quantityTraded: number;
-  deliveryQuantity: number;
-  totalMarketCap: number;
   basicIndustry: string;
   isSuspended: string;
-  varMargin: string;
-  applicableMargin: string;
-  adhocMargin: string;
   macro: string;
   sector: string;
   industryInfo: string;
-  tradingSegment: string;
-  nameOfComplianceOfficer: string | null;
-  yearHighDt: string | null;
-  yearLowDt: string | null;
-  yearHigh: number;
-  yearLow: number;
-  cmDailyVolatility: string | null;
-  cmAnnualVolatility: string | null;
   yesterdayChangePercent: number;
   oneWeekChangePercent: number;
   oneMonthChangePercent: number;
@@ -42,7 +15,6 @@ export interface YearwiseStockSummary {
   twoYearChangePercent: number;
   threeYearChangePercent: number;
   fiveYearChangePercent: number;
-  oneWeekDate: string | null;
   indexYesterdayChangePercent: number;
   indexOneWeekChangePercent: number;
   indexOneMonthChangePercent: number;
@@ -52,6 +24,5 @@ export interface YearwiseStockSummary {
   indexTwoYearChangePercent: number;
   indexThreeYearChangePercent: number;
   indexFiveYearChangePercent: number;
-  indexOneWeekDate: string | null;
   indexName: string;
 }

@@ -145,16 +145,23 @@ public class StockRepository(IDbContextFactory<StockDbContext> contextFactory) :
         }
 
         await using var context = _contextFactory.CreateDbContext();
-        await using var transaction = await context.Database.BeginTransactionAsync();
 
-        await context.HistoricalTradeDataEntities.AddRangeAsync(entities);
-        await context.SaveChangesAsync();
+        var strategy = context.Database.CreateExecutionStrategy();
 
-        await context.HistoricalTradeDataEntities
-            .Where(x => x.Symbol == symbol && x.FromDate == fromDateString && x.ToDate == toDateString && x.Series == series)
-            .ExecuteDeleteAsync();
+        await strategy.ExecuteAsync(async () =>
+        {
+            await using var transaction = await context.Database.BeginTransactionAsync();
 
-        await transaction.CommitAsync();
+            await context.HistoricalTradeDataEntities.AddRangeAsync(entities);
+            await context.SaveChangesAsync();
+
+            await context.HistoricalTradeDataEntities
+                .Where(x => x.Symbol == symbol && x.FromDate == fromDateString && x.ToDate == toDateString && x.Series == series)
+                .ExecuteDeleteAsync();
+
+            await transaction.CommitAsync();
+        });
+
         return entities.Count;
     }
 

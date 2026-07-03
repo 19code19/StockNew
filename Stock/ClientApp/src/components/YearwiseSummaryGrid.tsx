@@ -129,17 +129,7 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
       'basicIndustry',
       'industryInfo',
       'macro',
-      'tradingSegment',
-      'nameOfComplianceOfficer',
       'indexName',
-      'totalTradedVolume',
-      'totalTradedValue',
-      'quantityTraded',
-      'deliveryQuantity',
-      'deliveryToTradedQuantity',
-      'totalMarketCap',
-      'yearHigh',
-      'yearLow',
       'yesterdayChangePercent',
       'oneWeekChangePercent',
       'oneMonthChangePercent',
@@ -158,9 +148,6 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
       'indexTwoYearChangePercent',
       'indexThreeYearChangePercent',
       'indexFiveYearChangePercent',
-      'applicableMargin',
-      'varMargin',
-      'adhocMargin',
     ]);
 
     const rowFields = data?.length ? Object.keys(data[0]) : [];
@@ -170,8 +157,8 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
       .map((field) => {
         const sampleValue = data?.[0]?.[field as keyof YearwiseStockSummary];
         const numericConfig = typeof sampleValue === 'number'
-          ? { minWidth: 72, maxWidth: 96, width: 82 }
-          : { minWidth: 110, maxWidth: 180, width: 120 };
+          ? { minWidth: 120, maxWidth: 150, width: 100 }
+          : { minWidth: 150, maxWidth: 200, width: 130 };
 
         return createCompactColumn(field, formatColumnHeader(field), {
           ...numericConfig,
@@ -205,7 +192,6 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
       createCompactColumn('basicIndustry', 'Industry', { minWidth: 130, maxWidth: 180, filter: true }),
       createCompactColumn('industryInfo', 'Industry Info', { minWidth: 150, maxWidth: 220, filter: true }),
       createCompactColumn('macro', 'Macro', { minWidth: 150, maxWidth: 220, filter: true }),
-      createCompactColumn('tradingSegment', 'Trading Segment', { minWidth: 130, maxWidth: 180, filter: true }),
       createCompactColumn('indexName', 'Index', {
         minWidth: 110,
         maxWidth: 160,
@@ -215,62 +201,14 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
           suppressSelectAll: false,
         },
       }),
-      createCompactColumn('totalTradedVolume', 'Volume', {
-        minWidth: 78,
-        maxWidth: 100,
-        width: 84,
-        valueFormatter: (params: any) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number),
-      }),
-      createCompactColumn('totalTradedValue', 'Turnover', {
-        minWidth: 84,
-        maxWidth: 106,
-        width: 90,
-        valueFormatter: (params: any) => `₹${new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number)}`,
-      }),
-      createCompactColumn('quantityTraded', 'Qty Traded', {
-        minWidth: 78,
-        maxWidth: 100,
-        width: 84,
-        valueFormatter: (params: any) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number),
-      }),
-      createCompactColumn('deliveryQuantity', 'Delivery Qty', {
-        minWidth: 78,
-        maxWidth: 100,
-        width: 84,
-        valueFormatter: (params: any) => new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number),
-      }),
-      createCompactColumn('deliveryToTradedQuantity', 'Delivery %', {
-        minWidth: 74,
-        maxWidth: 90,
-        width: 80,
-        valueFormatter: (params: any) => `${Number(params.value ?? 0).toFixed(2)}%`,
-      }),
-      createCompactColumn('totalMarketCap', 'Market Cap', {
-        minWidth: 84,
-        maxWidth: 106,
-        width: 90,
-        valueFormatter: (params: any) => `₹${new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number)}`,
-      }),
-      createCompactColumn('yearHigh', 'Year High', {
-        minWidth: 74,
-        maxWidth: 92,
-        width: 80,
-        valueFormatter: (params: any) => `₹${new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number)}`,
-      }),
-      createCompactColumn('yearLow', 'Year Low', {
-        minWidth: 74,
-        maxWidth: 92,
-        width: 80,
-        valueFormatter: (params: any) => `₹${new Intl.NumberFormat('en-IN', { maximumFractionDigits: 2 }).format(params.value as number)}`,
-      }),
       createCompactColumn('yesterdayChangePercent', 'One Day', {
         minWidth: 78,
         maxWidth: 92,
-        width: 84,
+        width: 110,
         valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
       }),
       createCompactColumn('oneWeekChangePercent', 'One Week', {
-        minWidth: 84,
+        minWidth: 110,
         maxWidth: 98,
         width: 90,
         valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
@@ -278,41 +216,41 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
       createCompactColumn('oneMonthChangePercent', 'One Month', {
         minWidth: 90,
         maxWidth: 106,
-        width: 96,
+        width: 110,
         valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
       }),
       createCompactColumn('threeMonthChangePercent', 'Three Month', {
-        minWidth: 96,
+        minWidth: 110,
         maxWidth: 112,
         width: 102,
         valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
       }),
       createCompactColumn('sixMonthChangePercent', 'Six Month', {
-        minWidth: 96,
+        minWidth: 110,
         maxWidth: 112,
         width: 102,
         valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
       }),
       createCompactColumn('oneYearChangePercent', 'One Year', {
-        minWidth: 96,
+        minWidth: 110,
         maxWidth: 112,
         width: 102,
         valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
       }),
       createCompactColumn('twoYearChangePercent', 'Two Year', {
-        minWidth: 96,
+        minWidth: 110,
         maxWidth: 112,
         width: 102,
         valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
       }),
       createCompactColumn('threeYearChangePercent', 'Three Year', {
-        minWidth: 96,
+        minWidth: 110,
         maxWidth: 112,
         width: 102,
         valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
       }),
       createCompactColumn('fiveYearChangePercent', 'Five Year', {
-        minWidth: 96,
+        minWidth: 110,
         maxWidth: 112,
         width: 102,
         valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
@@ -320,11 +258,11 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
       createCompactColumn('indexYesterdayChangePercent', 'Index One Day', {
         minWidth: 78,
         maxWidth: 92,
-        width: 84,
+        width: 110,
         valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
       }),
       createCompactColumn('indexOneWeekChangePercent', 'Index One Week', {
-        minWidth: 84,
+        minWidth: 110,
         maxWidth: 98,
         width: 90,
         valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
@@ -332,65 +270,46 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
       createCompactColumn('indexOneMonthChangePercent', 'Index One Month', {
         minWidth: 90,
         maxWidth: 106,
-        width: 96,
+        width: 110,
         valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
       }),
       createCompactColumn('indexThreeMonthChangePercent', 'Index Three Month', {
-        minWidth: 96,
+        minWidth: 110,
         maxWidth: 112,
         width: 102,
         valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
       }),
       createCompactColumn('indexSixMonthChangePercent', 'Index Six Month', {
-        minWidth: 96,
+        minWidth: 110,
         maxWidth: 112,
         width: 102,
         valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
       }),
       createCompactColumn('indexOneYearChangePercent', 'Index One Year', {
-        minWidth: 96,
+        minWidth: 110,
         maxWidth: 112,
         width: 102,
         valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
       }),
       createCompactColumn('indexTwoYearChangePercent', 'Index Two Year', {
-        minWidth: 96,
+        minWidth: 110,
         maxWidth: 112,
         width: 102,
         valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
       }),
       createCompactColumn('indexThreeYearChangePercent', 'Index Three Year', {
-        minWidth: 96,
+        minWidth: 110,
         maxWidth: 112,
         width: 102,
         valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
       }),
       createCompactColumn('indexFiveYearChangePercent', 'Index Five Year', {
-        minWidth: 96,
+        minWidth: 110,
         maxWidth: 112,
         width: 102,
         valueFormatter: (params: any) => `${formatDisplayValue(params.value)}%`,
       }),
-      createCompactColumn('applicableMargin', 'Applicable Margin', {
-        minWidth: 84,
-        maxWidth: 110,
-        width: 90,
-        valueFormatter: (params: any) => String(params.value ?? ''),
-      }),
-      createCompactColumn('varMargin', 'Var Margin', {
-        minWidth: 74,
-        maxWidth: 96,
-        width: 80,
-        valueFormatter: (params: any) => String(params.value ?? ''),
-      }),
-      createCompactColumn('adhocMargin', 'Adhoc Margin', {
-        minWidth: 74,
-        maxWidth: 96,
-        width: 80,
-        valueFormatter: (params: any) => String(params.value ?? ''),
-      }),
       ...dynamicColumns,
-      createCompactColumn('nameOfComplianceOfficer', 'Compliance Officer', { minWidth: 150, maxWidth: 220, filter: true }),
     ];
   }, [dynamicColumns, renderFavoriteButton]);
 
