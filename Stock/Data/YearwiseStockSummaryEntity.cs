@@ -26,6 +26,13 @@ public class YearwiseStockSummaryEntity
     public decimal IndexFiveYearChangePercent { get; set; }
     public string IndexName { get; set; } = string.Empty;
 
+    //TradeInfoEntity
+    public long TotalTradedVolume { get; set; }
+    public decimal TotalTradedValue { get; set; }
+    public long QuantityTraded { get; set; }
+    public long DeliveryQuantity { get; set; }
+    public decimal TotalMarketCap { get; set; }
+
     //SecInfoEntity
 
     public string BasicIndustry { get; set; } = string.Empty;

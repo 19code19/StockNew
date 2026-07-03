@@ -1597,6 +1597,9 @@ namespace Stock.Migrations
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
+                    b.Property<long>("DeliveryQuantity")
+                        .HasColumnType("bigint");
+
                     b.Property<decimal>("OneMonthChangePercent")
                         .HasColumnType("decimal(18,2)");
 
@@ -1605,6 +1608,9 @@ namespace Stock.Migrations
 
                     b.Property<decimal>("OneYearChangePercent")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<long>("QuantityTraded")
+                        .HasColumnType("bigint");
 
                     b.Property<string>("Sector")
                         .IsRequired()
@@ -1622,6 +1628,15 @@ namespace Stock.Migrations
 
                     b.Property<decimal>("ThreeYearChangePercent")
                         .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalMarketCap")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal>("TotalTradedValue")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<long>("TotalTradedVolume")
+                        .HasColumnType("bigint");
 
                     b.Property<decimal>("TwoYearChangePercent")
                         .HasColumnType("decimal(18,2)");

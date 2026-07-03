@@ -6,6 +6,11 @@ export interface YearwiseStockSummary {
   macro: string;
   sector: string;
   industryInfo: string;
+  totalTradedVolume: number;
+  totalTradedValue: number;
+  quantityTraded: number;
+  deliveryQuantity: number;
+  totalMarketCap: number;
   yesterdayChangePercent: number;
   oneWeekChangePercent: number;
   oneMonthChangePercent: number;
