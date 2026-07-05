@@ -1,4 +1,5 @@
 import { type ColDef, type GridOptions, type ICellRendererParams } from '@ag-grid-community/core';
+import { useCallback, useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 
 export const createSlug = (company: string) =>
@@ -71,6 +72,80 @@ type CommonSymbolColumnOptions = {
   renderFavorite?: (params: ICellRendererParams) => JSX.Element | null;
   showNse?: boolean;
   showDetails?: boolean;
+};
+
+type FavoriteSymbolRow = { symbol?: string | null };
+
+const normalizeSymbol = (symbol?: string | null) => symbol?.trim().toUpperCase() ?? '';
+
+export const useFavoriteGridState = () => {
+  const [favoriteSymbols, setFavoriteSymbols] = useState<Set<string>>(new Set());
+
+  const fetchFavorites = useCallback(async () => {
+    try {
+      const response = await fetch('/api/nse/favorites');
+      if (!response.ok) {
+        setFavoriteSymbols(new Set());
+        return;
+      }
+
+      const favorites = (await response.json()) as FavoriteSymbolRow[];
+      setFavoriteSymbols(new Set(favorites.map((fav) => normalizeSymbol(fav.symbol)).filter(Boolean)));
+    } catch {
+      setFavoriteSymbols(new Set());
+    }
+  }, []);
+
+  useEffect(() => {
+    void fetchFavorites();
+  }, [fetchFavorites]);
+
+  const toggleFavorite = useCallback(
+    async (symbol: string, companyName: string, isFavorite: boolean) => {
+      const url = `/api/nse/favorites?symbol=${encodeURIComponent(symbol)}${
+        isFavorite ? '' : `&companyName=${encodeURIComponent(companyName)}`
+      }`;
+      const method = isFavorite ? 'DELETE' : 'POST';
+
+      try {
+        const response = await fetch(url, { method });
+        if (!response.ok) {
+          return;
+        }
+
+        await fetchFavorites();
+      } catch {
+        // Swallow errors here; the parent grid can decide how to surface them if needed.
+      }
+    },
+    [fetchFavorites],
+  );
+
+  const renderFavoriteButton = useCallback(
+    (params: ICellRendererParams): JSX.Element | null => {
+      const symbol = params.data?.symbol as string | undefined;
+      const companyName = params.data?.companyName as string | undefined;
+      if (!symbol) return null;
+
+      const normalizedSymbol = normalizeSymbol(symbol);
+      const isFavorite = favoriteSymbols.has(normalizedSymbol);
+
+      return (
+        <button
+          type="button"
+          onClick={() => void toggleFavorite(symbol, companyName ?? '', isFavorite)}
+          className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
+            isFavorite ? 'bg-amber-500 text-slate-950 hover:bg-amber-400' : 'bg-slate-700 text-slate-100 hover:bg-slate-600'
+          }`}
+        >
+          {isFavorite ? '★' : '☆'}
+        </button>
+      );
+    },
+    [favoriteSymbols, toggleFavorite],
+  );
+
+  return { favoriteSymbols, renderFavoriteButton };
 };
 
 export const buildCommonSymbolColumns = ({

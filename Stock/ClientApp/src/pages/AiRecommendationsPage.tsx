@@ -1,38 +1,19 @@
 import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AgGridReact } from '@ag-grid-community/react';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
-import { ModuleRegistry, type ColDef, type GridApi, type GridOptions, type GridReadyEvent, type ICellRendererParams } from '@ag-grid-community/core';
+import { ModuleRegistry, type ColDef, type GridApi, type GridOptions, type GridReadyEvent } from '@ag-grid-community/core';
 import { SetFilterModule } from '@ag-grid-enterprise/set-filter';
-import { buildCommonSymbolColumns, defaultGridOptions } from '../components/agGridHelpers';
+import { buildCommonSymbolColumns, defaultGridOptions, useFavoriteGridState } from '../components/agGridHelpers';
 import { AiRecommendationView } from '../models/AiRecommendationView';
 
 ModuleRegistry.registerModules([ClientSideRowModelModule, SetFilterModule]);
 
-type FavoriteSymbolRow = { symbol?: string | null };
-
-const normalizeSymbol = (symbol?: string | null) => symbol?.trim().toUpperCase() ?? '';
-
 const AiRecommendationsPage = () => {
   const [rows, setRows] = useState<AiRecommendationView[]>([]);
-  const [favoriteSymbols, setFavoriteSymbols] = useState<Set<string>>(new Set());
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [gridApi, setGridApi] = useState<GridApi | null>(null);
-
-  const fetchFavorites = useCallback(async () => {
-    try {
-      const response = await fetch('/api/nse/favorites');
-      if (!response.ok) {
-        setFavoriteSymbols(new Set());
-        return;
-      }
-
-      const favorites = (await response.json()) as FavoriteSymbolRow[];
-      setFavoriteSymbols(new Set(favorites.map((fav) => normalizeSymbol(fav.symbol)).filter(Boolean)));
-    } catch {
-      setFavoriteSymbols(new Set());
-    }
-  }, []);
+  const { favoriteSymbols, renderFavoriteButton } = useFavoriteGridState();
 
   const fetchRows = useCallback(async () => {
     setLoading(true);
@@ -55,9 +36,8 @@ const AiRecommendationsPage = () => {
   }, []);
 
   useEffect(() => {
-    void fetchFavorites();
     void fetchRows();
-  }, [fetchFavorites, fetchRows]);
+  }, [fetchRows]);
 
   useEffect(() => {
     if (!gridApi) {
@@ -66,51 +46,6 @@ const AiRecommendationsPage = () => {
 
     gridApi.refreshCells({ force: true, columns: ['symbol'] });
   }, [favoriteSymbols, gridApi]);
-
-  const toggleFavorite = useCallback(
-    async (symbol: string, companyName: string, isFavorite: boolean) => {
-      const url = `/api/nse/favorites?symbol=${encodeURIComponent(symbol)}${
-        isFavorite ? '' : `&companyName=${encodeURIComponent(companyName)}`
-      }`;
-      const method = isFavorite ? 'DELETE' : 'POST';
-
-      try {
-        const response = await fetch(url, { method });
-        if (!response.ok) {
-          throw new Error('Unable to update favorites');
-        }
-
-        await fetchFavorites();
-      } catch (err) {
-        setError(err instanceof Error ? err.message : 'Unable to update favorites');
-      }
-    },
-    [fetchFavorites],
-  );
-
-  const renderFavoriteButton = useCallback(
-    (params: ICellRendererParams): JSX.Element | null => {
-      const symbol = params.data?.symbol as string;
-      const companyName = params.data?.companyName as string;
-      if (!symbol) return null;
-
-      const normalizedSymbol = normalizeSymbol(symbol);
-      const isFavorite = favoriteSymbols.has(normalizedSymbol);
-
-      return (
-        <button
-          type="button"
-          onClick={() => void toggleFavorite(symbol, companyName, isFavorite)}
-          className={`rounded-full px-3 py-1 text-xs font-semibold transition ${
-            isFavorite ? 'bg-amber-500 text-slate-950 hover:bg-amber-400' : 'bg-slate-700 text-slate-100 hover:bg-slate-600'
-          }`}
-        >
-          {isFavorite ? '★' : '☆'}
-        </button>
-      );
-    },
-    [favoriteSymbols, toggleFavorite],
-  );
 
   const columnDefs = useMemo<ColDef[]>(
     () => [
