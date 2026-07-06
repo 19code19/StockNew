@@ -32,47 +32,6 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
     params.api.refreshCells({ force: true, columns: ['symbol'] });
   }, []);
 
-  const dynamicColumns = useMemo<ColDef[]>(() => {
-    const usedFields = new Set<string>([
-      'symbol',
-      'companyName',
-      'sector',
-      'basicIndustry',
-      'industryInfo',
-      'macro',
-      'indexName',
-      'totalTradedVolume',
-      'totalTradedValue',
-      'quantityTraded',
-      'deliveryQuantity',
-      'totalMarketCap',
-      'yesterdayChangePercent',
-      'oneWeekChangePercent',
-      'oneMonthChangePercent',
-      'threeMonthChangePercent',
-      'sixMonthChangePercent',
-      'oneYearChangePercent',
-      'twoYearChangePercent',
-      'threeYearChangePercent',
-      'fiveYearChangePercent',
-      'indexYesterdayChangePercent',
-      'indexOneWeekChangePercent',
-      'indexOneMonthChangePercent',
-      'indexThreeMonthChangePercent',
-      'indexSixMonthChangePercent',
-      'indexOneYearChangePercent',
-      'indexTwoYearChangePercent',
-      'indexThreeYearChangePercent',
-      'indexFiveYearChangePercent',
-    ]);
-
-    const rowFields = data?.length ? Object.keys(data[0]) : [];
-
-    return rowFields
-      .filter((field) => !usedFields.has(field))
-      .map((field) => buildDynamicColumn(field, data?.[0]?.[field as keyof YearwiseStockSummary])) as ColDef[];
-  }, [data]);
-
   const columnDefs = useMemo<ColDef[]>(() => {
     const commonSymbolColumns = buildCommonSymbolColumns({ includeFavorite: true, renderFavorite: renderFavoriteButton }).map((col) => ({
       ...col,
@@ -81,8 +40,8 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
       tooltipValueGetter: (params: any) => getTooltipValue(params),
     }));
 
-    return [...commonSymbolColumns, ...buildScopedColumns(), ...dynamicColumns];
-  }, [dynamicColumns, renderFavoriteButton]);
+    return [...commonSymbolColumns, ...buildScopedColumns()];
+  }, [renderFavoriteButton]);
 
   const gridOptions = useMemo<GridOptions>(() => ({
     ...defaultGridOptions,
