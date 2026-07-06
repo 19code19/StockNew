@@ -1,10 +1,6 @@
-using Microsoft.EntityFrameworkCore;
-using Stock.Data;
-using Stock.Helpers;
-
 namespace Stock.Repository;
 
-public class StockRepository(IDbContextFactory<StockDbContext> contextFactory) : IStockRepository
+public class StockRepository(IDbContextFactory<StockDbContext> contextFactory)
 {
     private readonly IDbContextFactory<StockDbContext> _contextFactory = contextFactory;
 
@@ -19,6 +15,7 @@ public class StockRepository(IDbContextFactory<StockDbContext> contextFactory) :
             .OrderBy(x => x)
             .ToListAsync();
     }
+
     public async Task<IReadOnlyList<string>> GetAllSymbolsSeriesAsync()
     {
         await using var context = _contextFactory.CreateDbContext();
@@ -33,9 +30,13 @@ public class StockRepository(IDbContextFactory<StockDbContext> contextFactory) :
     public async Task<int> SaveEquityListingsAsync(IEnumerable<Stock.Entity.EquityListing> listings)
     {
         await using var context = _contextFactory.CreateDbContext();
-        var entities = listings.Select(x => Stock.Helpers.Mapper.ToEntity<Stock.Entity.EquityListing, EquityListingEntity>(x)).ToList();
-        context.EquityListings.RemoveRange(context.EquityListings);
+        var entities = listings.Select(x => Mapper.ToEntity<Entity.EquityListing, EquityListingEntity>(x)).ToList();
+
+        // Replace bulk delete with tracked remove + add so EF handles the diff via change tracking.
+        var existing = await context.EquityListings.ToListAsync();
+        context.EquityListings.RemoveRange(existing);
         await context.EquityListings.AddRangeAsync(entities);
+
         return await context.SaveChangesAsync();
     }
 
@@ -48,63 +49,30 @@ public class StockRepository(IDbContextFactory<StockDbContext> contextFactory) :
 
         await using var context = _contextFactory.CreateDbContext();
 
-        var entity = Stock.Helpers.Mapper.ToEntity<SymbolDataResponse, SymbolDataEntity>(response);
-        entity.Symbol = response.Symbol;
-        entity.Series = response.Series;
-        entity.MarketType = response.MarketType;
+        var existing = await context.SymbolDataEntities
+            .Include(x => x.EquityResponse)
+            .FirstOrDefaultAsync(x => x.Symbol == response.Symbol);
 
-        context.SymbolDataEntities.RemoveRange(context.SymbolDataEntities.Where(x => x.Symbol == response.Symbol));
-        await context.SymbolDataEntities.AddAsync(entity);
-
-        context.OrderBookEntities.RemoveRange(context.OrderBookEntities.Where(x => x.Symbol == response.Symbol));
-        context.MetaDataEntities.RemoveRange(context.MetaDataEntities.Where(x => x.Symbol == response.Symbol));
-        context.TradeInfoEntities.RemoveRange(context.TradeInfoEntities.Where(x => x.Symbol == response.Symbol));
-        context.PriceInfoEntities.RemoveRange(context.PriceInfoEntities.Where(x => x.Symbol == response.Symbol));
-        context.SecInfoEntities.RemoveRange(context.SecInfoEntities.Where(x => x.Symbol == response.Symbol));
-
-        foreach (var equity in response.EquityResponse)
+        if (existing is not null)
         {
-            if (equity.OrderBook is not null)
-            {
-                var ob = Stock.Helpers.Mapper.ToEntity<Stock.Model.OrderBook, OrderBookEntity>(equity.OrderBook);
-                ob.Symbol = response.Symbol;
-                await context.OrderBookEntities.AddAsync(ob);
-            }
+            context.SymbolDataEntities.Remove(existing); // requires cascade delete on EquityResponse FK
+        }
 
-            if (equity.MetaData is not null)
-            {
-                var md = Stock.Helpers.Mapper.ToEntity<Stock.Model.MetaData, MetaDataEntity>(equity.MetaData);
-                md.Symbol = response.Symbol;
-                await context.MetaDataEntities.AddAsync(md);
-            }
+        // Single AutoMapper call now maps the entire graph, including EquityResponse and its children
+        var entity = Mapper.ToEntity<SymbolDataResponse, SymbolDataEntity>(response);
 
-            if (equity.TradeInfo is not null)
+        // IndexList -> JSON is custom logic AutoMapper won't do on its own; fix up after mapping
+        for (int i = 0; i < response.EquityResponse.Count; i++)
+        {
+            var srcSecInfo = response.EquityResponse[i]?.SecInfo;
+            if (srcSecInfo?.IndexList is not null && srcSecInfo.IndexList.Count != 0)
             {
-                var ti = Stock.Helpers.Mapper.ToEntity<Stock.Model.TradeInfo, TradeInfoEntity>(equity.TradeInfo);
-                ti.Symbol = response.Symbol;
-                await context.TradeInfoEntities.AddAsync(ti);
-            }
-
-            if (equity.PriceInfo is not null)
-            {
-                var pi = Stock.Helpers.Mapper.ToEntity<Stock.Model.PriceInfo, PriceInfoEntity>(equity.PriceInfo);
-                pi.Symbol = response.Symbol;
-                await context.PriceInfoEntities.AddAsync(pi);
-            }
-
-            if (equity.SecInfo is not null)
-            {
-                var si = Stock.Helpers.Mapper.ToEntity<Stock.Model.SecInfo, SecInfoEntity>(equity.SecInfo);
-                si.Symbol = response.Symbol;
-                if (equity.SecInfo.IndexList is not null && equity.SecInfo.IndexList.Any())
-                {
-                    si.IndexListJson = System.Text.Json.JsonSerializer.Serialize(equity.SecInfo.IndexList);
-                }
-
-                await context.SecInfoEntities.AddAsync(si);
+                entity.EquityResponse.ElementAt(i).SecInfo!.IndexListJson =
+                    System.Text.Json.JsonSerializer.Serialize(srcSecInfo.IndexList);
             }
         }
 
+        await context.SymbolDataEntities.AddAsync(entity);
         await context.SaveChangesAsync();
         return response;
     }
@@ -112,186 +80,19 @@ public class StockRepository(IDbContextFactory<StockDbContext> contextFactory) :
     public async Task<int> SaveYearwiseDataAsync(IEnumerable<Stock.Entity.YearwiseData> data, string symbol)
     {
         await using var context = _contextFactory.CreateDbContext();
-        var entities = data.Select(x => Stock.Helpers.Mapper.ToEntity<Stock.Entity.YearwiseData, YearwiseDataEntity>(x)).ToList();
+
+        var existing = await context.YearwiseDataEntities
+            .Where(x => x.Symbol == symbol)
+            .ToListAsync();
+        context.YearwiseDataEntities.RemoveRange(existing);
+
+        var entities = data.Select(x => Mapper.ToEntity<Stock.Entity.YearwiseData, YearwiseDataEntity>(x)).ToList();
         foreach (var entity in entities)
         {
             entity.Symbol = symbol;
         }
 
-        context.YearwiseDataEntities.RemoveRange(context.YearwiseDataEntities.Where(x => x.Symbol == symbol));
         await context.YearwiseDataEntities.AddRangeAsync(entities);
         return await context.SaveChangesAsync();
-    }
-
-    public async Task<int> SaveHistoricalTradeDataAsync(IEnumerable<HistoricalTradeData> data, string symbol, DateTime fromDate, DateTime toDate, string series = "EQ")
-    {
-        if (string.IsNullOrWhiteSpace(symbol))
-        {
-            return 0;
-        }
-
-        var fromDateString = fromDate.ToString("yyyy-MM-dd");
-        var toDateString = toDate.ToString("yyyy-MM-dd");
-        var batchCreatedAt = DateTime.UtcNow;
-        var entities = data.Select(x => Stock.Helpers.Mapper.ToEntity<HistoricalTradeData, HistoricalTradeDataEntity>(x)).ToList();
-
-        foreach (var entity in entities)
-        {
-            entity.Symbol = symbol;
-            entity.FromDate = fromDateString;
-            entity.ToDate = toDateString;
-            entity.Series = series;
-            entity.BatchCreatedAt = batchCreatedAt;
-        }
-
-        await using var context = _contextFactory.CreateDbContext();
-
-        var strategy = context.Database.CreateExecutionStrategy();
-
-        await strategy.ExecuteAsync(async () =>
-        {
-            await using var transaction = await context.Database.BeginTransactionAsync();
-
-            await context.HistoricalTradeDataEntities.AddRangeAsync(entities);
-            await context.SaveChangesAsync();
-
-            await context.HistoricalTradeDataEntities
-                .Where(x => x.Symbol == symbol && x.FromDate == fromDateString && x.ToDate == toDateString && x.Series == series)
-                .ExecuteDeleteAsync();
-
-            await transaction.CommitAsync();
-        });
-
-        return entities.Count;
-    }
-
-    public async Task<IReadOnlyList<HistoricalTradeData>> GetSavedHistoricalTradeDataAsync(string symbol, DateTime fromDate, DateTime toDate, string series = "EQ")
-    {
-        await using var context = _contextFactory.CreateDbContext();
-
-        var fromDateString = fromDate.ToString("yyyy-MM-dd");
-        var toDateString = toDate.ToString("yyyy-MM-dd");
-
-        return await context.HistoricalTradeDataEntities
-            .AsNoTracking()
-            .Where(x => x.Symbol == symbol && x.FromDate == fromDateString && x.ToDate == toDateString && x.Series == series)
-            .Select(x => Stock.Helpers.Mapper.ToEntity<HistoricalTradeDataEntity, HistoricalTradeData>(x))
-            .ToListAsync();
-    }
-
-    public async Task<int> SaveIndexDataAsync(IEnumerable<IndexData> data)
-    {
-        await using var context = _contextFactory.CreateDbContext();
-        var entities = data.Select(x => Stock.Helpers.Mapper.ToEntity<IndexData, IndexDataEntity>(x)).ToList();
-        context.IndexDataEntities.RemoveRange(context.IndexDataEntities);
-        await context.IndexDataEntities.AddRangeAsync(entities);
-        return await context.SaveChangesAsync();
-    }
-
-    public async Task<int> SaveAllIndicesAsync(IEnumerable<IndicesData> data)
-    {
-        await using var context = _contextFactory.CreateDbContext();
-        var entities = data.Select(x => Stock.Helpers.Mapper.ToEntity<IndicesData, AllIndicesEntity>(x)).ToList();
-        context.AllIndices.RemoveRange(context.AllIndices);
-        await context.AllIndices.AddRangeAsync(entities);
-        return await context.SaveChangesAsync();
-    }
-
-    public async Task<int> SaveShareholdingPatternAsync(string symbol, IDictionary<string, ShareholdingPatternEntry>? data)
-    {
-        if (data is null)
-        {
-            return 0;
-        }
-
-        await using var context = _contextFactory.CreateDbContext();
-        context.ShareholdingPatternEntries.RemoveRange(context.ShareholdingPatternEntries.Where(x => x.Symbol == symbol));
-        foreach (var item in data)
-        {
-            var entity = Stock.Helpers.Mapper.ToEntity<ShareholdingPatternEntry, ShareholdingPatternEntryEntity>(item.Value);
-            entity.Symbol = symbol;
-            entity.CategoryName = item.Key;
-            await context.ShareholdingPatternEntries.AddAsync(entity);
-        }
-
-        return await context.SaveChangesAsync();
-    }
-
-    public async Task<int> SavePeerComparisonDataAsync(string symbol, string quarter, IEnumerable<PeerComparisonData>? data)
-    {
-        if (data is null)
-        {
-            return 0;
-        }
-
-        await using var context = _contextFactory.CreateDbContext();
-        context.PeerComparisonDataEntities.RemoveRange(context.PeerComparisonDataEntities.Where(x => x.Symbol == symbol && x.Quarter == quarter));
-        foreach (var item in data)
-        {
-            var entity = Stock.Helpers.Mapper.ToEntity<PeerComparisonData, PeerComparisonDataEntity>(item);
-            entity.Symbol = symbol;
-            entity.Quarter = quarter;
-            await context.PeerComparisonDataEntities.AddAsync(entity);
-        }
-
-        return await context.SaveChangesAsync();
-    }
-
-    public async Task<int> SaveAiRecommendationsAsync(IEnumerable<AiRecommendationEntity> recommendations)
-    {
-        await using var context = _contextFactory.CreateDbContext();
-        await context.AiRecommendations.ExecuteDeleteAsync();
-        await context.AiRecommendations.AddRangeAsync(recommendations);
-        return await context.SaveChangesAsync();
-    }
-
-    public async Task<IReadOnlyList<AiRecommendationEntity>> GetAiRecommendationsAsync()
-    {
-        await using var context = _contextFactory.CreateDbContext();
-        return await context.AiRecommendations.AsNoTracking().OrderBy(x => x.Rank).ToListAsync();
-    }
-
-    public async Task<IReadOnlyList<AiRecommendationViewEntity>> GetAiRecommendationViewsAsync()
-    {
-        await using var context = _contextFactory.CreateDbContext();
-        return await context.AiRecommendationViews.AsNoTracking().OrderBy(x => x.Rank).ToListAsync();
-    }
-
-    public async Task<int> AddFavoriteSymbolAsync(string symbol, string companyName)
-    {
-        await using var context = _contextFactory.CreateDbContext();
-        if (await context.FavoriteSymbolEntities.AnyAsync(x => x.Symbol == symbol))
-        {
-            return 0;
-        }
-
-        var entity = new FavoriteSymbolEntity
-        {
-            Symbol = symbol,
-            CompanyName = companyName,
-            AddedAt = DateTime.UtcNow,
-        };
-
-        await context.FavoriteSymbolEntities.AddAsync(entity);
-        return await context.SaveChangesAsync();
-    }
-
-    public async Task<int> RemoveFavoriteSymbolAsync(string symbol)
-    {
-        await using var context = _contextFactory.CreateDbContext();
-        var existing = await context.FavoriteSymbolEntities.Where(x => x.Symbol == symbol).ToListAsync();
-        if (!existing.Any())
-        {
-            return 0;
-        }
-
-        context.FavoriteSymbolEntities.RemoveRange(existing);
-        return await context.SaveChangesAsync();
-    }
-
-    public async Task<IReadOnlyList<FavoriteSymbolEntity>> GetFavoriteSymbolsAsync()
-    {
-        await using var context = _contextFactory.CreateDbContext();
-        return await context.FavoriteSymbolEntities.AsNoTracking().OrderByDescending(x => x.AddedAt).ToListAsync();
     }
 }

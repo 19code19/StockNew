@@ -24,7 +24,7 @@ const SymbolDetailsPage = () => {
 
   const fetchFavoriteState = useCallback(async () => {
     try {
-      const response = await fetch('/api/nse/favorites');
+      const response = await fetch('/api/favorites');
       if (!response.ok) {
         return;
       }
@@ -45,7 +45,7 @@ const SymbolDetailsPage = () => {
 
   const toggleFavorite = useCallback(async () => {
     const companyName = formatCompanyName(companySlug);
-    const url = `/api/nse/favorites?symbol=${encodeURIComponent(displaySymbol)}${isFavorite ? '' : `&companyName=${encodeURIComponent(companyName)}`}`;
+    const url = `/api/favorites?symbol=${encodeURIComponent(displaySymbol)}${isFavorite ? '' : `&companyName=${encodeURIComponent(companyName)}`}`;
     const method = isFavorite ? 'DELETE' : 'POST';
 
     setFavoriteLoading(true);
@@ -65,7 +65,7 @@ const SymbolDetailsPage = () => {
       <section className="flex min-h-0 flex-1 flex-col rounded-2xl border border-slate-800 bg-slate-900/80 p-6 shadow-2xl">
         <div className="flex flex-wrap items-center justify-between gap-3">
           <div className="space-y-1">
-            <h2 className="text-xl font-semibold text-white">Historical trades for {displaySymbol}</h2>
+            <h2 className="text-xl font-semibold text-white">{displaySymbol} - Details</h2>
             {companyName && nseQuoteUrl && (
               <a
                 href={nseQuoteUrl}

@@ -1,9 +1,8 @@
 import { NavLink } from 'react-router-dom';
 
 const tabs = [
-  { label: 'NSE', to: '/' },
+  { label: 'Symbols', to: '/' },
   { label: 'AI Rec', to: '/ai-recommendations' },
-  { label: 'Details', to: '/historical' },
   { label: 'Favorites', to: '/favorites' },
 ];
 

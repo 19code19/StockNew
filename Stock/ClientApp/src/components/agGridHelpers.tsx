@@ -83,7 +83,7 @@ export const useFavoriteGridState = () => {
 
   const fetchFavorites = useCallback(async () => {
     try {
-      const response = await fetch('/api/nse/favorites');
+      const response = await fetch('/api/favorites');
       if (!response.ok) {
         setFavoriteSymbols(new Set());
         return;
@@ -102,7 +102,7 @@ export const useFavoriteGridState = () => {
 
   const toggleFavorite = useCallback(
     async (symbol: string, companyName: string, isFavorite: boolean) => {
-      const url = `/api/nse/favorites?symbol=${encodeURIComponent(symbol)}${
+      const url = `/api/favorites?symbol=${encodeURIComponent(symbol)}${
         isFavorite ? '' : `&companyName=${encodeURIComponent(companyName)}`
       }`;
       const method = isFavorite ? 'DELETE' : 'POST';

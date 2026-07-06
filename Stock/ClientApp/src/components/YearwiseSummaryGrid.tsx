@@ -5,7 +5,7 @@ import { ModuleRegistry, type ColDef, type GridApi, type GridOptions, type GridR
 import { SetFilterModule } from '@ag-grid-enterprise/set-filter';
 import { YearwiseStockSummary } from '../models/YearwiseStockSummary';
 import { buildCommonSymbolColumns, defaultGridOptions, useFavoriteGridState } from './agGridHelpers';
-import { buildDynamicColumn, buildScopedColumns } from '../grid/yearwiseSummary/Columnconfig';
+import { buildScopedColumns } from '../grid/yearwiseSummary/Columnconfig';
 import { getTooltipValue } from '../grid/yearwiseSummary/Columnformatters';
 
 ModuleRegistry.registerModules([ClientSideRowModelModule, SetFilterModule]);

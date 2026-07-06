@@ -3,19 +3,15 @@
 public class NSEService
 {
     private readonly NSEDataService _nSEDataService;
-    private readonly IStockRepository _stockRepository;
+    private readonly StockRepository _stockRepository;
 
-    public NSEService(NSEDataService nSEDataService, IStockRepository stockRepository)
+    public NSEService(NSEDataService nSEDataService, StockRepository stockRepository)
     {
         _nSEDataService = nSEDataService;
         _stockRepository = stockRepository;
     }
 
-    public async Task<int> SaveAllIndices()
-    {
-        var data = await _nSEDataService.GetAllIndices();
-        return await _stockRepository.SaveAllIndicesAsync(data?.Data ?? []);
-    }
+    #region Business Logic Methods
 
     public async Task<int> SaveEquityList()
     {
@@ -50,170 +46,11 @@ public class NSEService
         return results.Sum();
     }
 
-    public async Task<List<HistoricalTradeData>> SaveHistoricalTradeData(DateTime fromDate, DateTime toDate, string series = "EQ")
-    {
-        var symbols = await _stockRepository.GetAllSymbolsAsync();
-        var results = await ProcessInBatchesAsync(symbols, async symbol =>
-        {
-            var data = await _nSEDataService.GetHistoricalTradeData(symbol, fromDate, toDate, series);
-            await _stockRepository.SaveHistoricalTradeDataAsync(data, symbol, fromDate, toDate, series);
-            return data;
-        });
-
-        return results.SelectMany(x => x).ToList();
-    }
-
-    public async Task<List<HistoricalTradeData>> SaveHistoricalTradeDataForSymbol(string symbol, DateTime fromDate, DateTime toDate, string series = "EQ")
-    {
-        var data = await _nSEDataService.GetHistoricalTradeData(symbol, fromDate, toDate, series);
-        await _stockRepository.SaveHistoricalTradeDataAsync(data, symbol, fromDate, toDate, series);
-        return data;
-    }
-
-    public async Task<List<HistoricalTradeData>> GetHistoricalTradeData(DateTime fromDate, DateTime toDate, string series = "EQ", bool forceRefresh = false)
-    {
-        // Server-side caching is implemented per-symbol. For the all-symbol path we delegate
-        // to the batch save which fetches and stores data for all symbols.
-        return await SaveHistoricalTradeData(fromDate, toDate, series);
-    }
-
-    public async Task<List<HistoricalTradeData>> GetHistoricalTradeDataForSymbol(string symbol, DateTime fromDate, DateTime toDate, string series = "EQ", bool forceRefresh = false)
-    {
-        if (forceRefresh)
-        {
-            return await SaveHistoricalTradeDataForSymbol(symbol, fromDate, toDate, series);
-        }
-
-        var existing = await _stockRepository.GetSavedHistoricalTradeDataAsync(symbol, fromDate, toDate, series);
-        if (existing.Any())
-        {
-            return existing.ToList();
-        }
-
-        return await SaveHistoricalTradeDataForSymbol(symbol, fromDate, toDate, series);
-    }
-
-    public async Task<IndexDataResponse?> SaveIndexData(string type = "All")
-    {
-        var result = await _nSEDataService.GetIndexData();
-        if (result?.Data is not null)
-        {
-            await _stockRepository.SaveIndexDataAsync(result.Data);
-        }
-
-        return result;
-    }
-
-    public async Task<ShareholdingPatternResult> SaveShareholdingPattern(int noOfRecords = 50)
-    {
-        var symbols = await _stockRepository.GetAllSymbolsAsync();
-        var results = await ProcessInBatchesAsync(symbols, async currentSymbol =>
-        {
-            var result = await _nSEDataService.GetShareholdingPattern(currentSymbol, noOfRecords);
-            await _stockRepository.SaveShareholdingPatternAsync(currentSymbol, result.Data);
-            return result;
-        });
-
-        return new ShareholdingPatternResult(string.Empty, results.SelectMany(x => x.Data ?? []).ToDictionary(x => x.Key, x => x.Value));
-    }
-
-    public async Task<PeerComparisonDataResult> SavePeerComparisonData(string quarter, string type = "S", string param = "industry", string index = "")
-    {
-        var symbols = await _stockRepository.GetAllSymbolsAsync();
-        var results = await ProcessInBatchesAsync(symbols, async currentSymbol =>
-        {
-            var result = await _nSEDataService.GetPeerComparisonData(currentSymbol, quarter, type, param, index);
-            await _stockRepository.SavePeerComparisonDataAsync(currentSymbol, quarter, result.Data);
-            return result;
-        });
-
-        return new PeerComparisonDataResult(string.Empty, quarter, results.SelectMany(x => x.Data ?? []).ToList());
-    }
-
-    public async Task<CorpBoardMeetingResult> SaveCorpBoardMeeting(string marketApiType = "equities", string type = "W", int noOfRecords = 4)
-    {
-        var symbols = await _stockRepository.GetAllSymbolsAsync();
-        var results = await ProcessInBatchesAsync(symbols, async symbol =>
-        {
-            return await _nSEDataService.GetCorpBoardMeeting(symbol, marketApiType, type, noOfRecords);
-        });
-
-        return new CorpBoardMeetingResult(string.Empty, results.SelectMany(x => x.Data ?? []).ToList());
-    }
-
-    public async Task<FinancialStatusResult> SaveFinancialStatus()
-    {
-        var symbols = await _stockRepository.GetAllSymbolsAsync();
-        var results = await ProcessInBatchesAsync(symbols, async symbol =>
-        {
-            return await _nSEDataService.GetFinancialStatus(symbol);
-        });
-
-        return new FinancialStatusResult(string.Empty, results.SelectMany(x => x.Data ?? []).ToList());
-    }
-
-    public async Task<CorpEventCalendarResult> SaveCorpEventCalendar(int noOfRecords = 3, string marketApiType = "equities")
-    {
-        var symbols = await _stockRepository.GetAllSymbolsAsync();
-        var results = await ProcessInBatchesAsync(symbols, async symbol =>
-        {
-            return await _nSEDataService.GetCorpEventCalendar(symbol, noOfRecords, marketApiType);
-        });
-
-        return new CorpEventCalendarResult(string.Empty, results.SelectMany(x => x.Data ?? []).ToList());
-    }
-
-    public async Task<CorpAnnualReportResult> SaveCorpAnnualReport(string marketApiType = "equities", int noOfRecords = 6)
-    {
-        var symbols = await _stockRepository.GetAllSymbolsAsync();
-        var results = await ProcessInBatchesAsync(symbols, async symbol =>
-        {
-            return await _nSEDataService.GetCorpAnnualReport(symbol, marketApiType, noOfRecords);
-        });
-
-        return new CorpAnnualReportResult(string.Empty, results.SelectMany(x => x.Data ?? []).ToList());
-    }
-
-    public async Task<CorpActionResult> SaveCorpActions(string marketApiType = "equities", int noOfRecords = 6)
-    {
-        var symbols = await _stockRepository.GetAllSymbolsAsync();
-        var results = await ProcessInBatchesAsync(symbols, async symbol =>
-        {
-            return await _nSEDataService.GetCorpActions(symbol, marketApiType, noOfRecords);
-        });
-
-        return new CorpActionResult(string.Empty, results.SelectMany(x => x.Data ?? []).ToList());
-    }
-
-    public async Task<CorpAnnouncementResult> SaveCorpAnnouncements(string marketApiType = "equities", int noOfRecords = 6)
-    {
-        var symbols = await _stockRepository.GetAllSymbolsAsync();
-        var results = await ProcessInBatchesAsync(symbols, async symbol =>
-        {
-            return await _nSEDataService.GetCorpAnnouncements(symbol, marketApiType, noOfRecords);
-        });
-
-        return new CorpAnnouncementResult(string.Empty, results.SelectMany(x => x.Data ?? []).ToList());
-    }
-
-    public async Task<int> AddFavoriteSymbol(string symbol, string companyName)
-    {
-        return await _stockRepository.AddFavoriteSymbolAsync(symbol, companyName);
-    }
-
-    public async Task<int> RemoveFavoriteSymbol(string symbol)
-    {
-        return await _stockRepository.RemoveFavoriteSymbolAsync(symbol);
-    }
-
-    public async Task<IReadOnlyList<FavoriteSymbolEntity>> GetFavoriteSymbols()
-    {
-        return await _stockRepository.GetFavoriteSymbolsAsync();
-    }
+    #endregion
 
     #region Private Helpers
 
-    private async Task<List<TResult>> ProcessInBatchesAsync<TResult>(IReadOnlyList<string> symbols,  Func<string, Task<TResult>> processor, int batchSize = 50)
+    private async Task<List<TResult>> ProcessInBatchesAsync<TResult>(IReadOnlyList<string> symbols, Func<string, Task<TResult>> processor, int batchSize = 50)
     {
         var results = new List<TResult>();
         for (var index = 0; index < symbols.Count; index += batchSize)

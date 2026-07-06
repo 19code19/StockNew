@@ -20,7 +20,7 @@ const AiRecommendationsPage = () => {
     setError('');
 
     try {
-      const response = await fetch('/api/airecommendation/view');
+      const response = await fetch('/api/ai/recommendations/view');
       if (!response.ok) {
         throw new Error('Unable to load AI recommendations');
       }

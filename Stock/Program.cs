@@ -1,4 +1,3 @@
-
 using System.Text.Json;
 
 var builder = WebApplication.CreateBuilder(args);
@@ -36,8 +35,12 @@ builder.Services.AddDbContextFactory<StockDbContext>(options =>
             maxRetryDelay: TimeSpan.FromSeconds(10),
             errorNumbersToAdd: null)));
 
-// Register repository and services as transient to avoid sharing a single instance across concurrent work
-builder.Services.AddTransient<IStockRepository, StockRepository>();
+// Register repositories and services as transient to avoid sharing a single instance across concurrent work
+builder.Services.AddTransient<StockRepository>();
+builder.Services.AddTransient<FavoritesRepository>();
+builder.Services.AddTransient<AiRepository>();
+builder.Services.AddTransient<AiService>();
+builder.Services.AddTransient<FavoritesService>();
 builder.Services.AddTransient<NSEService>();
 builder.Services.AddTransient<NSEDataService>();
 builder.Services.AddHttpClient<NSEDataService>();

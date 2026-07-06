@@ -10,6 +10,5 @@ global using CsvHelper.Configuration.Attributes;
 global using Stock.Helpers;
 global using Stock.Repository;
 global using Microsoft.EntityFrameworkCore;
-global using Stock.Data;
 global using Stock.Entity;
 global using Stock;

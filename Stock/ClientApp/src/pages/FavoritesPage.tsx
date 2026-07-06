@@ -24,7 +24,7 @@ const FavoritesPage = () => {
     setError('');
 
     try {
-      const response = await fetch('/api/nse/favorites');
+      const response = await fetch('/api/favorites');
       if (!response.ok) {
         throw new Error('Unable to load favorites');
       }
@@ -45,7 +45,7 @@ const FavoritesPage = () => {
 
   const removeFavorite = useCallback(async (symbol: string) => {
     try {
-      const response = await fetch(`/api/nse/favorites?symbol=${encodeURIComponent(symbol)}`, {
+      const response = await fetch(`/api/favorites?symbol=${encodeURIComponent(symbol)}`, {
         method: 'DELETE',
       });
       if (!response.ok) {
