@@ -2,7 +2,10 @@ import { useCallback, useEffect, useMemo, useState } from 'react';
 import { AgGridReact } from '@ag-grid-community/react';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
 import { ModuleRegistry, type ColDef, type GridApi, type GridOptions, type GridReadyEvent, type ICellRendererParams } from '@ag-grid-community/core';
-import { buildCommonSymbolColumns, defaultGridOptions } from '../components/agGridHelpers';
+import { buildCommonSymbolColumns } from '../grid/commonSymbolColumns';
+import { createFavoritesColumns } from '../grid/columnConfigs';
+import { defaultGridOptions } from '../grid/defaultGridOptions';
+import { apiUrl } from '../api/api';
 
 ModuleRegistry.registerModules([ClientSideRowModelModule]);
 
@@ -24,7 +27,7 @@ const FavoritesPage = () => {
     setError('');
 
     try {
-      const response = await fetch('/api/favorites');
+      const response = await fetch(apiUrl('/api/favorites'));
       if (!response.ok) {
         throw new Error('Unable to load favorites');
       }
@@ -74,20 +77,7 @@ const FavoritesPage = () => {
   };
 
   const columnDefs = useMemo<ColDef[]>(
-    () => [
-      ...buildCommonSymbolColumns({ includeFavorite: true, renderFavorite: renderFavoriteButton }),
-      {
-        field: 'companyName',
-        headerName: 'Company',
-        minWidth: 260,
-      },
-      {
-        field: 'addedAt',
-        headerName: 'Added',
-        minWidth: 180,
-        valueFormatter: (params) => new Date(params.value as string).toLocaleString(),
-      },
-    ],
+    () => [...buildCommonSymbolColumns({ includeFavorite: true, renderFavorite: renderFavoriteButton }), ...createFavoritesColumns()],
     [removeFavorite],
   );
 

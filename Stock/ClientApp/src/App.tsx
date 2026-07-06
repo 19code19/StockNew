@@ -4,7 +4,6 @@ import HeaderTabs from './components/HeaderTabs';
 import YearwiseStockSummaryPage from './pages/YearwiseStockSummaryPage';
 import AiRecommendationsPage from './pages/AiRecommendationsPage';
 import FavoritesPage from './pages/FavoritesPage';
-import SymbolDetailsPage from './pages/SymbolDetailsPage';
 
 const App = () => (
   <div className="h-screen w-screen bg-slate-950 text-slate-100 overflow-hidden">
@@ -24,7 +23,6 @@ const App = () => (
           <Route path="/" element={<YearwiseStockSummaryPage />} />
           <Route path="/ai-recommendations" element={<AiRecommendationsPage />} />
           <Route path="/favorites" element={<FavoritesPage />} />
-          <Route path="/details/:symbol/:companySlug" element={<SymbolDetailsPage />} />
         </Routes>
       </SummaryDataProvider>
     </main>

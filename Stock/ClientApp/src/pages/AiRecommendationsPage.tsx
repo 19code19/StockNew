@@ -3,7 +3,11 @@ import { AgGridReact } from '@ag-grid-community/react';
 import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-model';
 import { ModuleRegistry, type ColDef, type GridApi, type GridOptions, type GridReadyEvent } from '@ag-grid-community/core';
 import { SetFilterModule } from '@ag-grid-enterprise/set-filter';
-import { buildCommonSymbolColumns, defaultGridOptions, useFavoriteGridState } from '../components/agGridHelpers';
+import { useFavoriteGridState } from '../components/agGridHelpers';
+import { buildCommonSymbolColumns } from '../grid/commonSymbolColumns';
+import { createAiRecommendationColumns } from '../grid/columnConfigs';
+import { defaultGridOptions } from '../grid/defaultGridOptions';
+import { apiUrl } from '../api/api';
 import { AiRecommendationView } from '../models/AiRecommendationView';
 
 ModuleRegistry.registerModules([ClientSideRowModelModule, SetFilterModule]);
@@ -20,7 +24,7 @@ const AiRecommendationsPage = () => {
     setError('');
 
     try {
-      const response = await fetch('/api/ai/recommendations/view');
+      const response = await fetch(apiUrl('/api/ai/recommendations/view'));
       if (!response.ok) {
         throw new Error('Unable to load AI recommendations');
       }
@@ -48,40 +52,7 @@ const AiRecommendationsPage = () => {
   }, [favoriteSymbols, gridApi]);
 
   const columnDefs = useMemo<ColDef[]>(
-    () => [
-      ...buildCommonSymbolColumns({ includeFavorite: true, renderFavorite: renderFavoriteButton }),
-      { field: 'rank', headerName: 'Rank', minWidth: 80, filter: 'agNumberColumnFilter', flex: 1 },
-      { field: 'companyName', headerName: 'Company', minWidth: 180, flex: 2 },
-      { field: 'category', headerName: 'Category', minWidth: 140, flex: 1 },
-      {
-        field: 'score',
-        headerName: 'Score',
-        minWidth: 100,
-        flex: 1,
-        valueFormatter: (params) => Number(params.value as number).toFixed(2),
-        filter: 'agNumberColumnFilter',
-      },
-      { field: 'source', headerName: 'Source', minWidth: 140, flex: 1 },
-      {
-        field: 'reason',
-        headerName: 'Reason',
-        minWidth: 180,
-        flex: 2,
-        tooltipField: 'reason',
-      },
-      { field: 'basicIndustry', headerName: 'Industry', minWidth: 140, flex: 1 },
-      { field: 'sector', headerName: 'Sector', minWidth: 140, flex: 1 },
-      { field: 'macro', headerName: 'Macro', minWidth: 160, flex: 1 },
-      { field: 'industryInfo', headerName: 'Industry Info', minWidth: 160, flex: 1 },
-      { field: 'issueDesc', headerName: 'Issue Desc', minWidth: 180, flex: 1 },
-      {
-        field: 'createdAt',
-        headerName: 'Created',
-        minWidth: 140,
-        flex: 1,
-        valueFormatter: (params) => new Date(params.value as string).toLocaleString(),
-      },
-    ],
+    () => [...buildCommonSymbolColumns({ includeFavorite: true, renderFavorite: renderFavoriteButton }), ...createAiRecommendationColumns()],
     [favoriteSymbols, renderFavoriteButton],
   );
 

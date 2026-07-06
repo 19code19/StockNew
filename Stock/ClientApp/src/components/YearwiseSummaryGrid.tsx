@@ -4,9 +4,10 @@ import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-mod
 import { ModuleRegistry, type ColDef, type GridApi, type GridOptions, type GridReadyEvent } from '@ag-grid-community/core';
 import { SetFilterModule } from '@ag-grid-enterprise/set-filter';
 import { YearwiseStockSummary } from '../models/YearwiseStockSummary';
-import { buildCommonSymbolColumns, defaultGridOptions, useFavoriteGridState } from './agGridHelpers';
-import { buildScopedColumns } from '../grid/yearwiseSummary/Columnconfig';
-import { getTooltipValue } from '../grid/yearwiseSummary/Columnformatters';
+import { useFavoriteGridState } from './agGridHelpers';
+import { buildCommonSymbolColumns } from '../grid/commonSymbolColumns';
+import { createYearwiseSummaryColumns } from '../grid/columnConfigs';
+import { defaultGridOptions } from '../grid/defaultGridOptions';
 
 ModuleRegistry.registerModules([ClientSideRowModelModule, SetFilterModule]);
 
@@ -37,10 +38,9 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
       ...col,
       wrapHeaderText: true,
       autoHeaderHeight: true,
-      tooltipValueGetter: (params: any) => getTooltipValue(params),
     }));
 
-    return [...commonSymbolColumns, ...buildScopedColumns()];
+    return [...commonSymbolColumns, ...createYearwiseSummaryColumns()];
   }, [renderFavoriteButton]);
 
   const gridOptions = useMemo<GridOptions>(() => ({
@@ -51,7 +51,6 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
       autoHeaderHeight: true,
       minWidth: 78,
       maxWidth: 220,
-      tooltipValueGetter: (params: any) => getTooltipValue(params),
     },
   }), []);
 

@@ -1,18 +1,13 @@
 ﻿using System.Text;
 using System.Text.Json;
-using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Caching.Memory;
 
 namespace Stock.Controllers;
 
 [Route("api/[controller]")]
 [ApiController]
-public class NSEController(NSEService nSEService, StockDbContext context, IMemoryCache memoryCache) : ControllerBase
+public class NSEController(NSEService nSEService) : ControllerBase
 {
-    private const string YearwiseCacheKey = "yearwise-stock-summary-rows";
     private readonly NSEService _nSEService = nSEService;
-    private readonly StockDbContext _context = context;
-    private readonly IMemoryCache _memoryCache = memoryCache;
 
     /// <summary>
     /// Fetches and persists the full list of equities listed on NSE
@@ -69,60 +64,7 @@ public class NSEController(NSEService nSEService, StockDbContext context, IMemor
     [ProducesResponseType(typeof(IEnumerable<YearwiseStockSummaryEntity>), 200)]
     public async Task<ActionResult<IEnumerable<YearwiseStockSummaryEntity>>> GetYearwiseSummary()
     {
-        if (_memoryCache.TryGetValue(YearwiseCacheKey, out List<YearwiseStockSummaryEntity>? cachedRows) && cachedRows is not null)
-        {
-            return Ok(cachedRows);
-        }
-
-        // Convert vw_YearwiseStockSummary to LINQ query
-        var rows = await (from y in _context.YearwiseDataEntities
-                          join t in _context.TradeInfoEntities on y.Symbol.Replace("EQN", "") equals t.Symbol
-                          join s in _context.SecInfoEntities on t.Symbol equals s.Symbol
-                          join p in _context.PriceInfoEntities on s.Symbol equals p.Symbol
-                          join m in _context.MetaDataEntities on p.Symbol equals m.Symbol
-                          select new YearwiseStockSummaryEntity
-                          {
-                              YesterdayChangePercent = y.YesterdayChangePercent,
-                              OneWeekChangePercent = y.OneWeekChangePercent,
-                              OneMonthChangePercent = y.OneMonthChangePercent,
-                              ThreeMonthChangePercent = y.ThreeMonthChangePercent,
-                              SixMonthChangePercent = y.SixMonthChangePercent,
-                              OneYearChangePercent = y.OneYearChangePercent,
-                              TwoYearChangePercent = y.TwoYearChangePercent,
-                              ThreeYearChangePercent = y.ThreeYearChangePercent,
-                              FiveYearChangePercent = y.FiveYearChangePercent,
-                              IndexYesterdayChangePercent = y.IndexYesterdayChangePercent,
-                              IndexOneWeekChangePercent = y.IndexOneWeekChangePercent,
-                              IndexOneMonthChangePercent = y.IndexOneMonthChangePercent,
-                              IndexThreeMonthChangePercent = y.IndexThreeMonthChangePercent,
-                              IndexSixMonthChangePercent = y.IndexSixMonthChangePercent,
-                              IndexOneYearChangePercent = y.IndexOneYearChangePercent,
-                              IndexTwoYearChangePercent = y.IndexTwoYearChangePercent,
-                              IndexThreeYearChangePercent = y.IndexThreeYearChangePercent,
-                              IndexFiveYearChangePercent = y.IndexFiveYearChangePercent,
-                              IndexName = y.IndexName,
-                              TotalTradedVolume = t.TotalTradedVolume,
-                              TotalTradedValue = t.TotalTradedValue,
-                              QuantityTraded = t.QuantityTraded,
-                              DeliveryQuantity = t.DeliveryQuantity,
-                              TotalMarketCap = t.TotalMarketCap,
-                              BasicIndustry = s.BasicIndustry,
-                              IsSuspended = s.IsSuspended,
-                              Macro = s.Macro,
-                              Sector = s.Sector,
-                              IndustryInfo = s.IndustryInfo,
-                              CompanyName = m.CompanyName,
-                              Symbol = m.Symbol
-                          })
-                          .AsNoTracking()
-                          .ToListAsync();
-
-        _memoryCache.Set(YearwiseCacheKey, rows, new MemoryCacheEntryOptions
-        {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
-            SlidingExpiration = TimeSpan.FromMinutes(1),
-        });
-
+        var rows = await _nSEService.GetYearwiseSummaryAsync();
         return Ok(rows);
     }
 
@@ -134,9 +76,7 @@ public class NSEController(NSEService nSEService, StockDbContext context, IMemor
     [HttpGet("yearwise-summary/download")]
     public async Task<IActionResult> DownloadYearwiseSummary()
     {
-        var rows = await _context.YearwiseStockSummaries
-            .AsNoTracking()
-            .ToListAsync();
+        var rows = await _nSEService.GetYearwiseSummaryAsync();
 
         var json = JsonSerializer.Serialize(rows, new JsonSerializerOptions
         {

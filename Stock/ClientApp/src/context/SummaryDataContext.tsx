@@ -10,8 +10,10 @@ type SummaryDataContextValue = {
 
 const SummaryDataContext = createContext<SummaryDataContextValue | undefined>(undefined);
 
+import { apiUrl } from '../api/api';
+
 async function fetchSummaryRows(): Promise<YearwiseStockSummary[]> {
-  const response = await fetch('/api/nse/yearwise-summary');
+  const response = await fetch(apiUrl('/api/nse/yearwise-summary'));
   if (!response.ok) {
     throw new Error('Failed to load summary data');
   }

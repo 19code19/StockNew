@@ -13,19 +13,19 @@ public class SymbolDataResponse
 public class EquitySymbolData
 {
     [JsonPropertyName("orderBook")]
-    public OrderBook? OrderBook { get; set; }
+    public OrderBook OrderBook { get; set; } = new();
 
     [JsonPropertyName("metaData")]
-    public MetaData? MetaData { get; set; }
+    public MetaData MetaData { get; set; } = new();
 
     [JsonPropertyName("tradeInfo")]
-    public TradeInfo? TradeInfo { get; set; }
+    public TradeInfo TradeInfo { get; set; } = new();
 
     [JsonPropertyName("priceInfo")]
-    public PriceInfo? PriceInfo { get; set; }
+    public PriceInfo PriceInfo { get; set; } = new();
 
     [JsonPropertyName("secInfo")]
-    public SecInfo? SecInfo { get; set; }
+    public SecInfo SecInfo { get; set; } = new();
 
     [JsonPropertyName("lastUpdateTime")]
     public string LastUpdateTime { get; set; } = string.Empty;

@@ -1,14 +1,22 @@
-﻿namespace Stock.Service;
+﻿using Microsoft.Extensions.Caching.Memory;
+using Stock.Entity;
+using Stock.Repository;
+
+namespace Stock.Service;
 
 public class NSEService
 {
+    private const string YearwiseCacheKey = "yearwise-stock-summary-rows";
+
     private readonly NSEDataService _nSEDataService;
     private readonly StockRepository _stockRepository;
+    private readonly IMemoryCache _memoryCache;
 
-    public NSEService(NSEDataService nSEDataService, StockRepository stockRepository)
+    public NSEService(NSEDataService nSEDataService, StockRepository stockRepository, IMemoryCache memoryCache)
     {
         _nSEDataService = nSEDataService;
         _stockRepository = stockRepository;
+        _memoryCache = memoryCache;
     }
 
     #region Business Logic Methods
@@ -40,10 +48,30 @@ public class NSEService
         {
             var result = await _nSEDataService.GetYearwiseData(symbol);
             var entities = (result.Data ?? []).Select(x => Stock.Helpers.Mapper.ToEntity<Stock.Model.YearwiseData, Stock.Entity.YearwiseData>(x)).ToList();
-            return await _stockRepository.SaveYearwiseDataAsync(entities, result.Symbol);
+            var persistedSymbol = result.Symbol.Length > 3 && result.Symbol.EndsWith("N")
+                ? result.Symbol[..^3]
+                : result.Symbol;
+            return await _stockRepository.SaveYearwiseDataAsync(entities, persistedSymbol);
         });
 
         return results.Sum();
+    }
+
+    public async Task<List<YearwiseStockSummaryEntity>> GetYearwiseSummaryAsync()
+    {
+        if (_memoryCache.TryGetValue(YearwiseCacheKey, out List<YearwiseStockSummaryEntity>? cachedRows) && cachedRows is not null)
+        {
+            return cachedRows;
+        }
+
+        var rows = await _stockRepository.GetYearwiseSummaryAsync();
+        _memoryCache.Set(YearwiseCacheKey, rows, new MemoryCacheEntryOptions
+        {
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
+            SlidingExpiration = TimeSpan.FromMinutes(1),
+        });
+
+        return rows;
     }
 
     #endregion

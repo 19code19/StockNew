@@ -31,7 +31,7 @@ public class SecInfoEntity
     public string Macro { get; set; } = string.Empty;
     public string Sector { get; set; } = string.Empty;
     public string IndustryInfo { get; set; } = string.Empty;
-    public string IndexListJson { get; set; } = "[]";
+    public List<string> IndexList { get; set; } = new();
     public string BoardStatus { get; set; } = string.Empty;
     public string TradingSegment { get; set; } = string.Empty;
     public string? SessionNo { get; set; }

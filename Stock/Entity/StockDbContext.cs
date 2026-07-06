@@ -1,4 +1,7 @@
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.ChangeTracking;
+using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
+using System.Text.Json;
 
 namespace Stock.Entity;
 
@@ -16,9 +19,7 @@ public class StockDbContext(DbContextOptions<StockDbContext> options) : DbContex
     public DbSet<TradeInfoEntity> TradeInfoEntities => Set<TradeInfoEntity>();
     public DbSet<PriceInfoEntity> PriceInfoEntities => Set<PriceInfoEntity>();
     public DbSet<SecInfoEntity> SecInfoEntities => Set<SecInfoEntity>();
-    public DbSet<YearwiseStockSummaryEntity> YearwiseStockSummaries => Set<YearwiseStockSummaryEntity>();
     public DbSet<AiRecommendationEntity> AiRecommendations => Set<AiRecommendationEntity>();
-    public DbSet<AiRecommendationViewEntity> AiRecommendationViews => Set<AiRecommendationViewEntity>();
     public DbSet<FavoriteSymbolEntity> FavoriteSymbolEntities => Set<FavoriteSymbolEntity>();
     
     protected override void OnModelCreating(ModelBuilder modelBuilder)
@@ -26,40 +27,73 @@ public class StockDbContext(DbContextOptions<StockDbContext> options) : DbContex
         base.OnModelCreating(modelBuilder);
 
         modelBuilder.Entity<SymbolDataEntity>()
-            .HasMany(x => x.EquityResponse)
-            .WithOne(x => x.SymbolData)
-            .HasForeignKey(x => x.SymbolDataId)
-            .OnDelete(DeleteBehavior.Cascade);
+            .HasAlternateKey(x => x.Symbol);
 
-        modelBuilder.Entity<EquitySymbolDataEntity>()
+        modelBuilder.Entity<SymbolDataEntity>()
             .HasOne(x => x.OrderBook)
-            .WithMany()
-            .HasForeignKey(x => x.OrderBookId)
+            .WithOne()
+            .HasForeignKey<OrderBookEntity>(x => x.Symbol)
+            .HasPrincipalKey<SymbolDataEntity>(x => x.Symbol)
             .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<EquitySymbolDataEntity>()
+        modelBuilder.Entity<SymbolDataEntity>()
             .HasOne(x => x.MetaData)
-            .WithMany()
-            .HasForeignKey(x => x.MetaDataId)
+            .WithOne()
+            .HasForeignKey<MetaDataEntity>(x => x.Symbol)
+            .HasPrincipalKey<SymbolDataEntity>(x => x.Symbol)
             .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<EquitySymbolDataEntity>()
+        modelBuilder.Entity<SymbolDataEntity>()
             .HasOne(x => x.TradeInfo)
-            .WithMany()
-            .HasForeignKey(x => x.TradeInfoId)
+            .WithOne()
+            .HasForeignKey<TradeInfoEntity>(x => x.Symbol)
+            .HasPrincipalKey<SymbolDataEntity>(x => x.Symbol)
             .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<EquitySymbolDataEntity>()
+        modelBuilder.Entity<SymbolDataEntity>()
             .HasOne(x => x.PriceInfo)
-            .WithMany()
-            .HasForeignKey(x => x.PriceInfoId)
+            .WithOne()
+            .HasForeignKey<PriceInfoEntity>(x => x.Symbol)
+            .HasPrincipalKey<SymbolDataEntity>(x => x.Symbol)
             .OnDelete(DeleteBehavior.Cascade);
 
-        modelBuilder.Entity<EquitySymbolDataEntity>()
+        modelBuilder.Entity<SymbolDataEntity>()
             .HasOne(x => x.SecInfo)
-            .WithMany()
-            .HasForeignKey(x => x.SecInfoId)
+            .WithOne()
+            .HasForeignKey<SecInfoEntity>(x => x.Symbol)
+            .HasPrincipalKey<SymbolDataEntity>(x => x.Symbol)
             .OnDelete(DeleteBehavior.Cascade);
+
+        modelBuilder.Entity<OrderBookEntity>()
+            .HasIndex(x => x.Symbol)
+            .IsUnique();
+
+        modelBuilder.Entity<TradeInfoEntity>()
+            .HasIndex(x => x.Symbol)
+            .IsUnique();
+
+        modelBuilder.Entity<PriceInfoEntity>()
+            .HasIndex(x => x.Symbol)
+            .IsUnique();
+
+        modelBuilder.Entity<SymbolDataEntity>()
+            .HasIndex(x => x.Symbol)
+            .IsUnique();
+
+        var indexListConverter = new ValueConverter<List<string>, string>(
+            v => JsonSerializer.Serialize(v, (JsonSerializerOptions?)null),
+            v => JsonSerializer.Deserialize<List<string>>(v, (JsonSerializerOptions?)null) ?? new List<string>());
+
+        var indexListComparer = new ValueComparer<List<string>>(
+            (l1, l2) => l1.SequenceEqual(l2),
+            l => l.Aggregate(0, (h, v) => HashCode.Combine(h, v == null ? 0 : v.GetHashCode())),
+            l => l.ToList());
+
+        modelBuilder.Entity<SecInfoEntity>()
+            .Property(e => e.IndexList)
+            .HasColumnName("IndexListJson")
+            .HasConversion(indexListConverter)
+            .Metadata.SetValueComparer(indexListComparer);
 
         modelBuilder.Entity<MetaDataEntity>()
             .HasIndex(x => x.Symbol)
@@ -68,6 +102,7 @@ public class StockDbContext(DbContextOptions<StockDbContext> options) : DbContex
         modelBuilder.Entity<SecInfoEntity>()
             .HasIndex(x => x.Symbol)
             .IsUnique();
+
 
         modelBuilder.Entity<AiRecommendationEntity>()
             .HasOne(x => x.MetaData)
