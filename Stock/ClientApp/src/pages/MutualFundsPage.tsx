@@ -107,7 +107,8 @@ const MutualFundsPage = () => {
             animateRows={true}
             loading={loading}
             pagination={true}
-            paginationPageSize={20}
+            paginationPageSize={100}
+            paginationPageSizeSelector={[50, 100, 200, 500, 1000, 2000, 5000,10000]}            
           />
         </div>
       </section>

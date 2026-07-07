@@ -9,13 +9,15 @@ export const defaultGridOptions: GridOptions = {
     minWidth: 100,
   },
   animateRows: true,
+  columnHoverHighlight: true,
+  rowDragEntireRow: true,
   rowHeight: 42,
   pagination: true,
   paginationPageSize: 20,
   loading: false,
   rowSelection: {
-    type: 'single',
-    enableClickSelection: false,
+    mode: 'singleRow',
+    enableClickSelection: true,
   },
   rowClassRules: {
     'ag-row-selected-highlight': (params) => Boolean(params.node.isSelected()),
