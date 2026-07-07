@@ -51,8 +51,6 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
     ...defaultGridOptions,
     defaultColDef: {
       ...defaultGridOptions.defaultColDef,
-      wrapHeaderText: true,
-      autoHeaderHeight: true,
       minWidth: 78,
       maxWidth: 220,
     },
@@ -66,9 +64,6 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
         gridOptions={gridOptions}
         loading={loading}
         onGridReady={onGridReady}
-        pagination={true}
-        paginationPageSize={100}
-        paginationPageSizeSelector={[50, 100, 200, 500, 1000, 2000, 5000,10000]}
       />
     </div>
   );

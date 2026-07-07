@@ -61,11 +61,6 @@ const MutualFundsPage = () => {
     ...defaultGridOptions,
     defaultColDef: {
       ...defaultGridOptions.defaultColDef,
-      filter: true,
-      sortable: true,
-      resizable: true,
-      floatingFilter: true,
-      flex: 1,
       minWidth: 120,
     },
   }), []);
@@ -104,11 +99,7 @@ const MutualFundsPage = () => {
             gridOptions={gridOptions}
             onGridReady={onGridReady}
             defaultColDef={gridOptions.defaultColDef}
-            animateRows={true}
-            loading={loading}
-            pagination={true}
-            paginationPageSize={100}
-            paginationPageSizeSelector={[50, 100, 200, 500, 1000, 2000, 5000,10000]}            
+            loading={loading}     
           />
         </div>
       </section>

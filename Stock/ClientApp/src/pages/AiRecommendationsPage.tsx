@@ -92,11 +92,6 @@ const AiRecommendationsPage = () => {
     },
     defaultColDef: {
       ...defaultGridOptions.defaultColDef,
-      filter: true,
-      sortable: true,
-      resizable: true,
-      floatingFilter: true,
-      flex: 1,
       minWidth: 120,
     },
   }), []);
@@ -148,10 +143,7 @@ const AiRecommendationsPage = () => {
             gridOptions={gridOptions}
             onGridReady={onGridReady}
             defaultColDef={gridOptions.defaultColDef}
-            animateRows={true}
             loading={loading}
-            pagination={true}
-            paginationPageSize={20}
           />
         </div>
       </section>

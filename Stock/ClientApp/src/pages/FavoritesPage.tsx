@@ -166,10 +166,7 @@ const FavoritesPage = () => {
             gridOptions={gridOptions}
             onGridReady={onGridReady}
             defaultColDef={gridOptions.defaultColDef}
-            animateRows={true}
             loading={loading}
-            pagination={true}
-            paginationPageSize={20}
           />
         </div>
       </section>
