@@ -23,7 +23,8 @@ public class StockDbContext(DbContextOptions<StockDbContext> options) : DbContex
     public DbSet<SecInfoEntity> SecInfoEntities => Set<SecInfoEntity>();
     public DbSet<AiRecommendationEntity> AiRecommendations => Set<AiRecommendationEntity>();
     public DbSet<FavoriteSymbolEntity> FavoriteSymbolEntities => Set<FavoriteSymbolEntity>();
-    
+    public DbSet<AiRecommendationMFEntity> AiRecommendationMFEntities => Set<AiRecommendationMFEntity>();
+
     protected override void OnModelCreating(ModelBuilder modelBuilder)
     {
         base.OnModelCreating(modelBuilder);

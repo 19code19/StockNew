@@ -2,23 +2,10 @@ using System.ComponentModel.DataAnnotations;
 
 namespace Stock.Entity;
 
-public class AiRecommendationEntity
+public class AiRecommendationEntity : AiRecommendationBase
 {
     [Key]
     public int Id { get; set; }
-
-    public int Rank { get; set; }
-
-    public string Symbol { get; set; } = string.Empty;
-
-    public string AssetType { get; set; } = "stock";
-
-    public string Category { get; set; } = string.Empty;
-
-    public decimal Score { get; set; }
-    public string Source { get; set; }
-
-    public string Reason { get; set; } = string.Empty;
 
     public DateTime CreatedAt { get; set; } = DateTime.UtcNow;
 

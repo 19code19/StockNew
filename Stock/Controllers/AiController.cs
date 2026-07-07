@@ -38,4 +38,17 @@ public class AiController(AiService aiService) : ControllerBase
             return BadRequest(ex.Message);
         }
     }
+    [HttpPost("mf/recommendations")]
+    public async Task<ActionResult> SaveMFRecommendations([FromBody] IEnumerable<AiRecommendationDto> recommendations)
+    {
+        try
+        {
+            var savedCount = await _aiService.SaveMFRecommendationsAsync(recommendations);
+            return CreatedAtAction(nameof(GetRecommendationViews), new { count = savedCount }, new { saved = savedCount });
+        }
+        catch (ArgumentException ex)
+        {
+            return BadRequest(ex.Message);
+        }
+    }
 }

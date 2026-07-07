@@ -11,16 +11,51 @@ public class AiRepository(IDbContextFactory<StockDbContext> contextFactory)
         await context.AiRecommendations.AddRangeAsync(recommendations);
         return await context.SaveChangesAsync();
     }
+    public async Task<int> SaveMFAiRecommendationsAsync(IEnumerable<AiRecommendationMFEntity> recommendations)
+    {
+        await using var context = _contextFactory.CreateDbContext();
+        await context.AiRecommendationMFEntities.ExecuteDeleteAsync();
+        await context.AiRecommendationMFEntities.AddRangeAsync(recommendations);
+        return await context.SaveChangesAsync();
+    }
 
     public async Task<IReadOnlyList<AiRecommendationViewEntity>> GetAiRecommendationViewsAsync(string? assetType = null)
     {
+        var normalizedAssetType = assetType?.Trim().ToLowerInvariant();
+
         await using var context = _contextFactory.CreateDbContext();
 
+        return normalizedAssetType == "mutualfund"
+            ? await GetMutualFundRecommendationsAsync(context)
+            : await GetSecurityRecommendationsAsync(context, normalizedAssetType);
+    }
+
+    private static async Task<IReadOnlyList<AiRecommendationViewEntity>> GetMutualFundRecommendationsAsync(StockDbContext context)
+    {
+        return await context.AiRecommendationMFEntities
+            .AsNoTracking()
+            .OrderBy(x => x.Rank)
+            .Select(x => new AiRecommendationViewEntity
+            {
+                Rank = x.Rank,
+                Symbol = x.Symbol,
+                Category = x.Category,
+                Score = x.Score,
+                Source = x.Source,
+                Reason = x.Reason,
+                CreatedAt = DateTime.Now,
+                AssetType = x.AssetType
+            })
+            .ToListAsync();
+    }
+
+    private static async Task<IReadOnlyList<AiRecommendationViewEntity>> GetSecurityRecommendationsAsync(StockDbContext context, string? normalizedAssetType)
+    {
         var query = context.AiRecommendations.AsNoTracking();
-        if (!string.IsNullOrWhiteSpace(assetType))
+
+        if (!string.IsNullOrWhiteSpace(normalizedAssetType))
         {
-            var normalized = assetType.Trim().ToLowerInvariant();
-            query = query.Where(x => x.AssetType == normalized);
+            query = query.Where(x => x.AssetType == normalizedAssetType);
         }
 
         return await query

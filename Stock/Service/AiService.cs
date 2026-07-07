@@ -18,7 +18,7 @@ public class AiService(AiRepository aiRepository, IWebHostEnvironment environmen
                 return cachedRows;
             }
 
-            var rows = await _aiRepository.GetAiRecommendationViewsAsync();
+            var rows = await _aiRepository.GetAiRecommendationViewsAsync(assetType);
             SetCachedRows(RecommendationViewCacheKey, rows);
             return rows;
         }
@@ -68,6 +68,34 @@ public class AiService(AiRepository aiRepository, IWebHostEnvironment environmen
         }
 
         var savedCount = await _aiRepository.SaveAiRecommendationsAsync(entities);
+        _memoryCache.Remove(RecommendationViewCacheKey);
+        return savedCount;
+    }
+
+    public async Task<int> SaveMFRecommendationsAsync(IEnumerable<AiRecommendationDto>? recommendations)
+    {
+        if (recommendations is null)
+        {
+            throw new ArgumentException("Request body must contain at least one recommendation.", nameof(recommendations));
+        }
+
+        var entities = recommendations.Select(x => new AiRecommendationMFEntity
+        {
+            Rank = x.Rank,
+            Symbol = x.Symbol,
+            AssetType = string.IsNullOrWhiteSpace(x.AssetType) ? "stock" : x.AssetType.Trim().ToLowerInvariant(),
+            Category = x.Category,
+            Score = x.Score,
+            Source = x.Source,
+            Reason = x.Reason
+        }).ToList();
+
+        if (entities.Count == 0)
+        {
+            throw new ArgumentException("Request body must contain at least one recommendation.", nameof(recommendations));
+        }
+
+        var savedCount = await _aiRepository.SaveMFAiRecommendationsAsync(entities);
         _memoryCache.Remove(RecommendationViewCacheKey);
         return savedCount;
     }

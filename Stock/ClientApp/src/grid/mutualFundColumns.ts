@@ -3,7 +3,7 @@ import type { ColDef } from '@ag-grid-community/core';
 export const createMutualFundColumns = (): ColDef[] => [
   { field: 'fundHouse', headerName: 'Fund House', minWidth: 180, flex: 1 },
   { field: 'amc', headerName: 'AMC', minWidth: 140, flex: 1 },
-  { field: 'schemeName', headerName: 'Scheme', minWidth: 480, flex: 2 },
+  { field: 'schemeName', headerName: 'Scheme', minWidth: 480, flex: 2, filter: 'agTextColumnFilter'},
   { field: 'nav', headerName: 'NAV', minWidth: 100, flex: 1, filter: 'agNumberColumnFilter' },
   { field: 'return1D', headerName: '1D', minWidth: 80, flex: 1, filter: 'agNumberColumnFilter' },
   { field: 'return3M', headerName: '3M', minWidth: 80, flex: 1, filter: 'agNumberColumnFilter' },
