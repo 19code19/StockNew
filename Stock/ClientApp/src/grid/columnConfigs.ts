@@ -41,12 +41,14 @@ export const createFavoritesColumns = (): ColDef[] => [
   {
     field: 'companyName',
     headerName: 'Company',
-    minWidth: 260,
+    minWidth: 320,
+    flex: 2,
   },
   {
     field: 'addedAt',
     headerName: 'Added',
-    minWidth: 180,
+    minWidth: 220,
+    flex: 1,
     valueFormatter: (params) => new Date(params.value as string).toLocaleString(),
   },
 ];

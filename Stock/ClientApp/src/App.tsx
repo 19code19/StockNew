@@ -2,6 +2,7 @@ import { Route, Routes } from 'react-router-dom';
 import { SummaryDataProvider } from './context/SummaryDataContext';
 import HeaderTabs from './components/HeaderTabs';
 import YearwiseStockSummaryPage from './pages/YearwiseStockSummaryPage';
+import MutualFundsPage from './pages/MutualFundsPage';
 import AiRecommendationsPage from './pages/AiRecommendationsPage';
 import FavoritesPage from './pages/FavoritesPage';
 
@@ -21,6 +22,7 @@ const App = () => (
       <SummaryDataProvider>
         <Routes>
           <Route path="/" element={<YearwiseStockSummaryPage />} />
+          <Route path="/mutual-funds" element={<MutualFundsPage />} />
           <Route path="/ai-recommendations" element={<AiRecommendationsPage />} />
           <Route path="/favorites" element={<FavoritesPage />} />
         </Routes>

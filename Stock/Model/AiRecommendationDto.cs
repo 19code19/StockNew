@@ -5,6 +5,7 @@ public class AiRecommendationDto
     public int Rank { get; set; }
 
     public string Symbol { get; set; } = string.Empty;
+    public string AssetType { get; set; } = "stock";
     public string Source { get; set; } = string.Empty;
 
     public string Category { get; set; } = string.Empty;

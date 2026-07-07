@@ -34,7 +34,11 @@ const YearwiseSummaryGrid = ({ data, loading = false }: YearwiseSummaryGridProps
   }, []);
 
   const columnDefs = useMemo<ColDef[]>(() => {
-    const commonSymbolColumns = buildCommonSymbolColumns({ includeFavorite: true, renderFavorite: renderFavoriteButton }).map((col) => ({
+    const commonSymbolColumns = buildCommonSymbolColumns({
+      assetType: 'stock',
+      includeFavorite: true,
+      renderFavorite: renderFavoriteButton,
+    }).map((col) => ({
       ...col,
       wrapHeaderText: true,
       autoHeaderHeight: true,

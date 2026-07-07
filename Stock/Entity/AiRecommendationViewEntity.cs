@@ -9,6 +9,8 @@ public class AiRecommendationViewEntity
 
     public string Symbol { get; set; } = string.Empty;
 
+    public string AssetType { get; set; } = string.Empty;
+
     public string Category { get; set; } = string.Empty;
 
     public decimal Score { get; set; }

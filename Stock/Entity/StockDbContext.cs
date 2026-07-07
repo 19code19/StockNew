@@ -13,6 +13,8 @@ public class StockDbContext(DbContextOptions<StockDbContext> options) : DbContex
 
     public DbSet<YearwiseDataEntity> YearwiseDataEntities => Set<YearwiseDataEntity>();
 
+    public DbSet<MutualFundSchemeEntity> MutualFundSchemes => Set<MutualFundSchemeEntity>();
+
     // Entities for symbol-level splits
     public DbSet<OrderBookEntity> OrderBookEntities => Set<OrderBookEntity>();
     public DbSet<MetaDataEntity> MetaDataEntities => Set<MetaDataEntity>();
@@ -78,6 +80,13 @@ public class StockDbContext(DbContextOptions<StockDbContext> options) : DbContex
 
         modelBuilder.Entity<SymbolDataEntity>()
             .HasIndex(x => x.Symbol)
+            .IsUnique();
+
+        modelBuilder.Entity<MutualFundSchemeEntity>()
+            .HasIndex(x => x.SchemeId);
+
+        modelBuilder.Entity<FavoriteSymbolEntity>()
+            .HasIndex(x => new { x.AssetType, x.Symbol })
             .IsUnique();
 
         var indexListConverter = new ValueConverter<List<string>, string>(

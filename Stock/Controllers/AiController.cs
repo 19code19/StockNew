@@ -7,9 +7,9 @@ public class AiController(AiService aiService) : ControllerBase
     private readonly AiService _aiService = aiService;
 
     [HttpGet("recommendations/view")]
-    public async Task<ActionResult<IEnumerable<AiRecommendationViewEntity>>> GetRecommendationViews()
+    public async Task<ActionResult<IEnumerable<AiRecommendationViewEntity>>> GetRecommendationViews([FromQuery] string? assetType = null)
     {
-        var rows = await _aiService.GetRecommendationViewsAsync();
+        var rows = await _aiService.GetRecommendationViewsAsync(assetType);
         return Ok(rows);
     }
 

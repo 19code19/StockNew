@@ -45,6 +45,10 @@ builder.Services.AddTransient<NSEService>();
 builder.Services.AddTransient<NSEDataService>();
 builder.Services.AddHttpClient<NSEDataService>();
 
+builder.Services.AddTransient<MutualFundRepository>();
+builder.Services.AddTransient<MutualFundService>();
+builder.Services.AddHttpClient<MutualFundService>(client => client.BaseAddress = new Uri("https://groww.in/"));
+
 var app = builder.Build();
 
 // Configure the HTTP request pipeline.

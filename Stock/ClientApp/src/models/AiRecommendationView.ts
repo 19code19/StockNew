@@ -1,6 +1,7 @@
 export interface AiRecommendationView {
   rank: number;
   symbol: string;
+  assetType: string;
   category: string;
   score: number;
   source: string;

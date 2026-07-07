@@ -9,16 +9,27 @@ public class AiService(AiRepository aiRepository, IWebHostEnvironment environmen
     private readonly IWebHostEnvironment _environment = environment;
     private readonly IMemoryCache _memoryCache = memoryCache;
 
-    public async Task<IReadOnlyList<AiRecommendationViewEntity>> GetRecommendationViewsAsync()
+    public async Task<IReadOnlyList<AiRecommendationViewEntity>> GetRecommendationViewsAsync(string? assetType = null)
     {
-        if (_memoryCache.TryGetValue(RecommendationViewCacheKey, out IReadOnlyList<AiRecommendationViewEntity>? cachedRows) && cachedRows is not null)
+        if (string.IsNullOrWhiteSpace(assetType))
         {
-            return cachedRows;
+            if (_memoryCache.TryGetValue(RecommendationViewCacheKey, out IReadOnlyList<AiRecommendationViewEntity>? cachedRows) && cachedRows is not null)
+            {
+                return cachedRows;
+            }
+
+            var rows = await _aiRepository.GetAiRecommendationViewsAsync();
+            SetCachedRows(RecommendationViewCacheKey, rows);
+            return rows;
         }
 
-        var rows = await _aiRepository.GetAiRecommendationViewsAsync();
-        SetCachedRows(RecommendationViewCacheKey, rows);
-        return rows;
+        if (_memoryCache.TryGetValue(RecommendationViewCacheKey, out IReadOnlyList<AiRecommendationViewEntity>? cachedRowsWithFilter) && cachedRowsWithFilter is not null)
+        {
+            var normalized = assetType.Trim().ToLowerInvariant();
+            return cachedRowsWithFilter.Where(x => x.AssetType == normalized).ToList();
+        }
+
+        return await _aiRepository.GetAiRecommendationViewsAsync(assetType);
     }
 
     public async Task<string?> GetFormatJsonAsync()
@@ -43,6 +54,7 @@ public class AiService(AiRepository aiRepository, IWebHostEnvironment environmen
         {
             Rank = x.Rank,
             Symbol = x.Symbol,
+            AssetType = string.IsNullOrWhiteSpace(x.AssetType) ? "stock" : x.AssetType.Trim().ToLowerInvariant(),
             Category = x.Category,
             Score = x.Score,
             Source = x.Source,
@@ -64,8 +76,8 @@ public class AiService(AiRepository aiRepository, IWebHostEnvironment environmen
     {
         _memoryCache.Set(cacheKey, rows, new MemoryCacheEntryOptions
         {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
-            SlidingExpiration = TimeSpan.FromMinutes(1),
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(5),
+            SlidingExpiration = TimeSpan.FromHours(1),
         });
     }
 }

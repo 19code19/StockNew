@@ -22,14 +22,19 @@ public class FavoritesController(FavoritesService favoritesService, IMemoryCache
     [HttpPost]
     [ProducesResponseType(typeof(int), 200)]
     [ProducesResponseType(400)]
-    public async Task<IActionResult> AddFavorite([FromQuery] string symbol, [FromQuery] string companyName)
+    public async Task<IActionResult> AddFavorite([FromQuery] string symbol, [FromQuery] string companyName, [FromQuery] string assetType = "stock")
     {
         if (string.IsNullOrWhiteSpace(symbol) || string.IsNullOrWhiteSpace(companyName))
         {
             return BadRequest("symbol and companyName are required");
         }
 
-        var count = await _favoritesService.AddFavoriteSymbol(symbol, companyName);
+        if (string.IsNullOrWhiteSpace(assetType))
+        {
+            assetType = "stock";
+        }
+
+        var count = await _favoritesService.AddFavoriteSymbol(symbol, companyName, assetType);
         _memoryCache.Remove(CacheKey);
         return Ok(count);
     }
@@ -44,14 +49,19 @@ public class FavoritesController(FavoritesService favoritesService, IMemoryCache
     [HttpDelete]
     [ProducesResponseType(typeof(int), 200)]
     [ProducesResponseType(400)]
-    public async Task<IActionResult> RemoveFavorite([FromQuery] string symbol)
+    public async Task<IActionResult> RemoveFavorite([FromQuery] string symbol, [FromQuery] string assetType = "stock")
     {
         if (string.IsNullOrWhiteSpace(symbol))
         {
             return BadRequest("symbol is required");
         }
 
-        var count = await _favoritesService.RemoveFavoriteSymbol(symbol);
+        if (string.IsNullOrWhiteSpace(assetType))
+        {
+            assetType = "stock";
+        }
+
+        var count = await _favoritesService.RemoveFavoriteSymbol(symbol, assetType);
         _memoryCache.Remove(CacheKey);
         return Ok(count);
     }
@@ -59,23 +69,32 @@ public class FavoritesController(FavoritesService favoritesService, IMemoryCache
     /// <summary>
     /// Gets all favorite symbols with caching
     /// </summary>
+    /// <param name="assetType">Optional asset type filter (stock or mutualFund)</param>
     /// <returns>List of favorite symbols</returns>
     /// <response code="200">Success</response>
     [HttpGet]
     [ProducesResponseType(typeof(List<FavoriteSymbolEntity>), 200)]
-    public async Task<IActionResult> GetFavorites()
+    public async Task<IActionResult> GetFavorites([FromQuery] string? assetType = null)
     {
         if (_memoryCache.TryGetValue(CacheKey, out List<FavoriteSymbolEntity>? cachedFavorites) && cachedFavorites is not null)
         {
-            return Ok(cachedFavorites);
+            var filteredFavorites = string.IsNullOrWhiteSpace(assetType)
+                ? cachedFavorites
+                : cachedFavorites.Where(x => x.AssetType.Equals(assetType.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+            return Ok(filteredFavorites);
         }
 
         var favorites = await _favoritesService.GetFavoriteSymbols();
         _memoryCache.Set(CacheKey, favorites, new MemoryCacheEntryOptions
         {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
-            SlidingExpiration = TimeSpan.FromMinutes(1),
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(5),
+            SlidingExpiration = TimeSpan.FromHours(1),
         });
-        return Ok(favorites);
+
+        var output = string.IsNullOrWhiteSpace(assetType)
+            ? favorites
+            : favorites.Where(x => x.AssetType.Equals(assetType.Trim(), StringComparison.OrdinalIgnoreCase)).ToList();
+
+        return Ok(output);
     }
 }

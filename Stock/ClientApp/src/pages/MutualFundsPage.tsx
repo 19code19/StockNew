@@ -4,92 +4,61 @@ import { ClientSideRowModelModule } from '@ag-grid-community/client-side-row-mod
 import { ModuleRegistry, type ColDef, type GridApi, type GridOptions, type GridReadyEvent } from '@ag-grid-community/core';
 import { SetFilterModule } from '@ag-grid-enterprise/set-filter';
 import { useFavoriteGridState } from '../components/agGridHelpers';
-import { buildCommonSymbolColumns, createSlug } from '../grid/commonSymbolColumns';
-import { createAiRecommendationColumns } from '../grid/columnConfigs';
+import { buildCommonSymbolColumns } from '../grid/commonSymbolColumns';
 import { defaultGridOptions } from '../grid/defaultGridOptions';
 import { apiUrl } from '../api/api';
-import { AiRecommendationView } from '../models/AiRecommendationView';
+import { MutualFundScheme } from '../models/MutualFundScheme';
+import { createMutualFundColumns } from '../grid/mutualFundColumns';
 
 ModuleRegistry.registerModules([ClientSideRowModelModule, SetFilterModule]);
 
-const AiRecommendationsPage = () => {
-  const [rows, setRows] = useState<AiRecommendationView[]>([]);
-  const [assetType, setAssetType] = useState<'all' | 'stock' | 'mutualfund'>('all');
+
+const MutualFundsPage = () => {
+  const [rows, setRows] = useState<MutualFundScheme[]>([]);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState('');
   const [gridApi, setGridApi] = useState<GridApi | null>(null);
-  const { favoriteSymbols, renderFavoriteButton } = useFavoriteGridState();
+  const { renderFavoriteButton } = useFavoriteGridState();
 
   const fetchRows = useCallback(async () => {
     setLoading(true);
     setError('');
 
     try {
-      const query = assetType === 'all' ? '' : `?assetType=${encodeURIComponent(assetType)}`;
-      const response = await fetch(apiUrl(`/api/ai/recommendations/view${query}`));
+      const response = await fetch(apiUrl('/api/mutualfund'));
       if (!response.ok) {
-        throw new Error('Unable to load AI recommendations');
+        throw new Error('Unable to load mutual funds');
       }
 
-      const data = (await response.json()) as AiRecommendationView[];
-      setRows(data);
+      const data = (await response.json()) as MutualFundScheme[];
+      setRows(data.map((row) => ({ ...row, assetType: 'mutualFund' })));
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Unable to load AI recommendations');
+      setError(err instanceof Error ? err.message : 'Unable to load mutual funds');
       setRows([]);
     } finally {
       setLoading(false);
     }
-  }, [assetType]);
+  }, []);
 
   useEffect(() => {
     void fetchRows();
   }, [fetchRows]);
 
-  useEffect(() => {
-    if (!gridApi) {
-      return;
-    }
-
-    gridApi.refreshCells({ force: true, columns: ['symbol'] });
-  }, [favoriteSymbols, gridApi]);
-
   const columnDefs = useMemo<ColDef[]>(
     () => [
       ...buildCommonSymbolColumns({
+        assetType: 'mutualFund',
         includeFavorite: true,
         renderFavorite: renderFavoriteButton,
-        showNse: false,
-        externalLinkUrl: (symbol, company, params) => {
-          const assetType = (params.data as AiRecommendationView)?.assetType ?? 'stock';
-          if (assetType.toLowerCase() === 'mutualfund' || assetType.toLowerCase() === 'mutual-fund') {
-            return `https://groww.in/mutual-funds/${symbol}`;
-          }
-
-          const slug = createSlug(company || symbol);
-          return `https://www.nseindia.com/get-quote/equity/${symbol}/${slug}`;
-        },
+        externalLinkUrl: (schemeId) => `https://groww.in/mutual-funds/${schemeId}`,
       }),
-      ...createAiRecommendationColumns(),
+      ...createMutualFundColumns(),
     ],
     [renderFavoriteButton],
   );
 
   const gridOptions = useMemo<GridOptions>(() => ({
     ...defaultGridOptions,
-    domLayout: 'normal',
-    suppressHorizontalScroll: true,
-    sideBar: {
-      toolPanels: [
-        {
-          id: 'columns',
-          labelDefault: 'Columns',
-          labelKey: 'columns',
-          iconKey: 'columns',
-          toolPanel: 'agColumnsToolPanel',
-        },
-      ],
-      defaultToolPanel: 'columns',
-    },
     defaultColDef: {
       ...defaultGridOptions.defaultColDef,
       filter: true,
@@ -127,22 +96,9 @@ const AiRecommendationsPage = () => {
     <div className="flex h-full w-full flex-col gap-4">
       {error ? <div className="rounded-2xl border border-rose-700 bg-rose-950/20 p-4 text-rose-200">{error}</div> : null}
 
-      <section className="flex items-center gap-4 pb-2">
-        <label className="text-sm font-semibold text-slate-200">Filter:</label>
-        <select
-          value={assetType}
-          onChange={(event) => setAssetType(event.target.value as 'all' | 'stock' | 'mutualfund')}
-          className="rounded-md border border-slate-700 bg-slate-950 px-3 py-2 text-sm text-slate-100"
-        >
-          <option value="all">All</option>
-          <option value="stock">Stock</option>
-          <option value="mutualfund">Mutual Fund</option>
-        </select>
-      </section>
-
       <section className="flex min-h-0 flex-1 rounded-2xl border border-slate-800 bg-slate-950/80 p-4 shadow-2xl">
         <div className="ag-theme-alpine h-full min-h-0 w-full" style={{ width: '100%', height: '100%' }}>
-          <AgGridReact<AiRecommendationView>
+          <AgGridReact<MutualFundScheme>
             rowData={rows}
             columnDefs={columnDefs}
             gridOptions={gridOptions}
@@ -159,4 +115,4 @@ const AiRecommendationsPage = () => {
   );
 };
 
-export default AiRecommendationsPage;
+export default MutualFundsPage;

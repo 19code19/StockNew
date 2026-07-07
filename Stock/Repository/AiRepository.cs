@@ -12,11 +12,18 @@ public class AiRepository(IDbContextFactory<StockDbContext> contextFactory)
         return await context.SaveChangesAsync();
     }
 
-    public async Task<IReadOnlyList<AiRecommendationViewEntity>> GetAiRecommendationViewsAsync()
+    public async Task<IReadOnlyList<AiRecommendationViewEntity>> GetAiRecommendationViewsAsync(string? assetType = null)
     {
         await using var context = _contextFactory.CreateDbContext();
-        return await context.AiRecommendations
-            .AsNoTracking()
+
+        var query = context.AiRecommendations.AsNoTracking();
+        if (!string.IsNullOrWhiteSpace(assetType))
+        {
+            var normalized = assetType.Trim().ToLowerInvariant();
+            query = query.Where(x => x.AssetType == normalized);
+        }
+
+        return await query
             .Include(x => x.MetaData)
             .Include(x => x.SecInfo)
             .OrderBy(x => x.Rank)
@@ -29,6 +36,7 @@ public class AiRepository(IDbContextFactory<StockDbContext> contextFactory)
                 Source = x.Source,
                 Reason = x.Reason,
                 CreatedAt = x.CreatedAt,
+                AssetType = x.AssetType,
                 CompanyName = x.MetaData == null ? string.Empty : x.MetaData.CompanyName,
                 BasicIndustry = x.SecInfo == null ? string.Empty : x.SecInfo.BasicIndustry,
                 IssueDesc = x.SecInfo == null ? null : x.SecInfo.IssueDesc,

@@ -6,10 +6,13 @@ public class FavoritesRepository(IDbContextFactory<StockDbContext> contextFactor
 {
     private readonly IDbContextFactory<StockDbContext> _contextFactory = contextFactory;
 
-    public async Task<int> AddFavoriteSymbolAsync(string symbol, string companyName)
+    public async Task<int> AddFavoriteSymbolAsync(string symbol, string companyName, string assetType = "stock")
     {
         await using var context = _contextFactory.CreateDbContext();
-        if (await context.FavoriteSymbolEntities.AnyAsync(x => x.Symbol == symbol))
+        symbol = symbol.Trim().ToUpperInvariant();
+        assetType = assetType.Trim().ToLowerInvariant();
+
+        if (await context.FavoriteSymbolEntities.AnyAsync(x => x.AssetType == assetType && x.Symbol == symbol))
         {
             return 0;
         }
@@ -18,6 +21,7 @@ public class FavoritesRepository(IDbContextFactory<StockDbContext> contextFactor
         {
             Symbol = symbol,
             CompanyName = companyName,
+            AssetType = assetType,
             AddedAt = DateTime.UtcNow,
         };
 
@@ -25,10 +29,14 @@ public class FavoritesRepository(IDbContextFactory<StockDbContext> contextFactor
         return await context.SaveChangesAsync();
     }
 
-    public async Task<int> RemoveFavoriteSymbolAsync(string symbol)
+    public async Task<int> RemoveFavoriteSymbolAsync(string symbol, string assetType = "stock")
     {
         await using var context = _contextFactory.CreateDbContext();
-        return await context.FavoriteSymbolEntities.Where(x => x.Symbol == symbol).ExecuteDeleteAsync();
+        symbol = symbol.Trim().ToUpperInvariant();
+        assetType = assetType.Trim().ToLowerInvariant();
+        return await context.FavoriteSymbolEntities
+            .Where(x => x.AssetType == assetType && x.Symbol == symbol)
+            .ExecuteDeleteAsync();
     }
 
     public async Task<IReadOnlyList<FavoriteSymbolEntity>> GetFavoriteSymbolsAsync()

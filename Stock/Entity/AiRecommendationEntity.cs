@@ -11,6 +11,8 @@ public class AiRecommendationEntity
 
     public string Symbol { get; set; } = string.Empty;
 
+    public string AssetType { get; set; } = "stock";
+
     public string Category { get; set; } = string.Empty;
 
     public decimal Score { get; set; }

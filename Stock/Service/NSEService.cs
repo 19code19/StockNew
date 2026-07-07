@@ -67,8 +67,8 @@ public class NSEService
         var rows = await _stockRepository.GetYearwiseSummaryAsync();
         _memoryCache.Set(YearwiseCacheKey, rows, new MemoryCacheEntryOptions
         {
-            AbsoluteExpirationRelativeToNow = TimeSpan.FromMinutes(5),
-            SlidingExpiration = TimeSpan.FromMinutes(1),
+            AbsoluteExpirationRelativeToNow = TimeSpan.FromHours(5),
+            SlidingExpiration = TimeSpan.FromHours(1),
         });
 
         return rows;
