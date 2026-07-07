@@ -79,7 +79,7 @@ export const useFavoriteGridState = (defaultAssetType: string = 'stock') => {
           symbol={symbol}
           companyName={companyName}
           isFavorite={isFavorite}
-          onToggle={() => void toggleFavorite(symbol, companyName, isFavorite, assetType)}
+          onToggle={() => void toggleFavorite(symbol, companyName ?? '', isFavorite, assetType)}
         />
       );
     },

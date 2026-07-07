@@ -12,7 +12,7 @@ using Stock.Entity;
 namespace Stock.Migrations
 {
     [DbContext(typeof(StockDbContext))]
-    [Migration("20260706155442_Initial")]
+    [Migration("20260707044856_Initial")]
     partial class Initial
     {
         /// <inheritdoc />
@@ -32,6 +32,10 @@ namespace Stock.Migrations
                         .HasColumnType("int");
 
                     SqlServerPropertyBuilderExtensions.UseIdentityColumn(b.Property<int>("Id"));
+
+                    b.Property<string>("AssetType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Category")
                         .IsRequired()
@@ -113,15 +117,22 @@ namespace Stock.Migrations
                     b.Property<DateTime>("AddedAt")
                         .HasColumnType("datetime2");
 
+                    b.Property<string>("AssetType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
                     b.Property<string>("CompanyName")
                         .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
                     b.Property<string>("Symbol")
                         .IsRequired()
-                        .HasColumnType("nvarchar(max)");
+                        .HasColumnType("nvarchar(450)");
 
                     b.HasKey("Id");
+
+                    b.HasIndex("AssetType", "Symbol")
+                        .IsUnique();
 
                     b.ToTable("FavoriteSymbolEntities");
                 });
@@ -217,6 +228,175 @@ namespace Stock.Migrations
                         .IsUnique();
 
                     b.ToTable("MetaDataEntities");
+                });
+
+            modelBuilder.Entity("Stock.Entity.MutualFundSchemeEntity", b =>
+                {
+                    b.Property<Guid>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("uniqueidentifier");
+
+                    b.Property<string>("Amc")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("Aum")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<bool>("AvailableForInvestment")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("Category")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DirectFund")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("DirectSchemeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("DocRequired")
+                        .HasColumnType("bit");
+
+                    b.Property<string>("DocType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ExitLoad")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("ExpenseRatio")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FundHouse")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FundManager")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("FundName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("GrowwVerdictScore")
+                        .HasColumnType("int");
+
+                    b.Property<DateTime>("LastUpdatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("LaunchDate")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("LogoUrl")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("LumpsumAllowed")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("MinInvestmentAmount")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("MinSipInvestment")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("Nav")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<int?>("PageView")
+                        .HasColumnType("int");
+
+                    b.Property<string>("PlanType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<decimal?>("Return10Y")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("Return1D")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("Return1Y")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("Return3M")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("Return3Y")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("Return5Y")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("Return6M")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("Return7Y")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("Risk")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int?>("RiskRating")
+                        .HasColumnType("int");
+
+                    b.Property<string>("SchemeCode")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SchemeId")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("SchemeName")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SchemeType")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<bool>("SipAllowed")
+                        .HasColumnType("bit");
+
+                    b.Property<decimal?>("SipReturn10Y")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("SipReturn1Y")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("SipReturn3Y")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<decimal?>("SipReturn5Y")
+                        .HasColumnType("decimal(18,2)");
+
+                    b.Property<string>("SubCategory")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("SubSubCategory")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<string>("Tags")
+                        .IsRequired()
+                        .HasColumnType("nvarchar(max)");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("SchemeId");
+
+                    b.ToTable("MutualFundSchemes");
                 });
 
             modelBuilder.Entity("Stock.Entity.OrderBookEntity", b =>

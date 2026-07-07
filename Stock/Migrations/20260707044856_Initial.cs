@@ -35,13 +35,70 @@ namespace Stock.Migrations
                 columns: table => new
                 {
                     Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
-                    Symbol = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Symbol = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     CompanyName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    AssetType = table.Column<string>(type: "nvarchar(450)", nullable: false),
                     AddedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
                 },
                 constraints: table =>
                 {
                     table.PrimaryKey("PK_FavoriteSymbolEntities", x => x.Id);
+                });
+
+            migrationBuilder.CreateTable(
+                name: "MutualFundSchemes",
+                columns: table => new
+                {
+                    Id = table.Column<Guid>(type: "uniqueidentifier", nullable: false),
+                    SchemeId = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    SchemeName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FundHouse = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FundName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DirectFund = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Category = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SubCategory = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PlanType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SchemeCode = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    SchemeType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    GrowwVerdictScore = table.Column<int>(type: "int", nullable: true),
+                    Nav = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Return1D = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Return1Y = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Return3M = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Return3Y = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Return5Y = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Return6M = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Return7Y = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Return10Y = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    SipReturn1Y = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    SipReturn3Y = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    SipReturn5Y = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    SipReturn10Y = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    DocRequired = table.Column<bool>(type: "bit", nullable: false),
+                    MinInvestmentAmount = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    MinSipInvestment = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    Amc = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    FundManager = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DirectSchemeName = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    DocType = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    PageView = table.Column<int>(type: "int", nullable: true),
+                    SubSubCategory = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Tags = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Aum = table.Column<decimal>(type: "decimal(18,2)", nullable: true),
+                    ExpenseRatio = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    Risk = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    RiskRating = table.Column<int>(type: "int", nullable: true),
+                    AvailableForInvestment = table.Column<bool>(type: "bit", nullable: false),
+                    SipAllowed = table.Column<bool>(type: "bit", nullable: false),
+                    LumpsumAllowed = table.Column<bool>(type: "bit", nullable: false),
+                    LaunchDate = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LogoUrl = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    ExitLoad = table.Column<string>(type: "nvarchar(max)", nullable: false),
+                    LastUpdatedAt = table.Column<DateTime>(type: "datetime2", nullable: false)
+                },
+                constraints: table =>
+                {
+                    table.PrimaryKey("PK_MutualFundSchemes", x => x.Id);
                 });
 
             migrationBuilder.CreateTable(
@@ -301,6 +358,7 @@ namespace Stock.Migrations
                         .Annotation("SqlServer:Identity", "1, 1"),
                     Rank = table.Column<int>(type: "int", nullable: false),
                     Symbol = table.Column<string>(type: "nvarchar(450)", nullable: false),
+                    AssetType = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Category = table.Column<string>(type: "nvarchar(max)", nullable: false),
                     Score = table.Column<decimal>(type: "decimal(18,2)", nullable: false),
                     Source = table.Column<string>(type: "nvarchar(max)", nullable: false),
@@ -328,10 +386,21 @@ namespace Stock.Migrations
                 column: "Symbol");
 
             migrationBuilder.CreateIndex(
+                name: "IX_FavoriteSymbolEntities_AssetType_Symbol",
+                table: "FavoriteSymbolEntities",
+                columns: new[] { "AssetType", "Symbol" },
+                unique: true);
+
+            migrationBuilder.CreateIndex(
                 name: "IX_MetaDataEntities_Symbol",
                 table: "MetaDataEntities",
                 column: "Symbol",
                 unique: true);
+
+            migrationBuilder.CreateIndex(
+                name: "IX_MutualFundSchemes_SchemeId",
+                table: "MutualFundSchemes",
+                column: "SchemeId");
 
             migrationBuilder.CreateIndex(
                 name: "IX_OrderBookEntities_Symbol",
@@ -375,6 +444,9 @@ namespace Stock.Migrations
 
             migrationBuilder.DropTable(
                 name: "FavoriteSymbolEntities");
+
+            migrationBuilder.DropTable(
+                name: "MutualFundSchemes");
 
             migrationBuilder.DropTable(
                 name: "OrderBookEntities");
