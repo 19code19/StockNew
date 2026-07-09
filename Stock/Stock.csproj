@@ -20,7 +20,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <Folder Include="AI\Template\" />
+    <Folder Include="AI\" />
   </ItemGroup>
 
 </Project>

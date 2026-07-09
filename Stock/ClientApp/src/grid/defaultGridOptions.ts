@@ -18,7 +18,7 @@ export const defaultGridOptions: GridOptions = {
   loading: false,
   pagination: true,
   paginationPageSize: 100,
-  paginationPageSizeSelector: [50, 100, 200, 500, 1000, 2000, 5000, 10000],
+  paginationPageSizeSelector: [20,50, 100, 200, 500, 1000, 2000, 5000],
   rowSelection: {
     mode: 'singleRow',
     enableClickSelection: true,

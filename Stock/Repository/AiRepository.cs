@@ -4,17 +4,23 @@ public class AiRepository(IDbContextFactory<StockDbContext> contextFactory)
 {
     private readonly IDbContextFactory<StockDbContext> _contextFactory = contextFactory;
 
-    public async Task<int> SaveAiRecommendationsAsync(IEnumerable<AiRecommendationEntity> recommendations)
+    public async Task<int> SaveAiRecommendationsAsync(IEnumerable<AiRecommendationEntity> recommendations, bool isDelete)
     {
         await using var context = _contextFactory.CreateDbContext();
-        await context.AiRecommendations.ExecuteDeleteAsync();
+
+        if (isDelete)
+            await context.AiRecommendations.ExecuteDeleteAsync();
+
         await context.AiRecommendations.AddRangeAsync(recommendations);
         return await context.SaveChangesAsync();
     }
-    public async Task<int> SaveMFAiRecommendationsAsync(IEnumerable<AiRecommendationMFEntity> recommendations)
+    public async Task<int> SaveMFAiRecommendationsAsync(IEnumerable<AiRecommendationMFEntity> recommendations, bool isDelete)
     {
         await using var context = _contextFactory.CreateDbContext();
-        await context.AiRecommendationMFEntities.ExecuteDeleteAsync();
+
+        if (isDelete)
+            await context.AiRecommendationMFEntities.ExecuteDeleteAsync();
+
         await context.AiRecommendationMFEntities.AddRangeAsync(recommendations);
         return await context.SaveChangesAsync();
     }

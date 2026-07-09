@@ -16,21 +16,15 @@ public class AiController(AiService aiService) : ControllerBase
     [HttpGet("format")]
     public async Task<IActionResult> GetFormat()
     {
-        var json = await _aiService.GetFormatJsonAsync();
-        if (json is null)
-        {
-            return NotFound(new { error = "Template file not found." });
-        }
-
-        return Content(json, "application/json");
+        return Ok( new AiRecommendationDto());
     }
 
-    [HttpPost("recommendations")]
-    public async Task<ActionResult> SaveRecommendations([FromBody] IEnumerable<AiRecommendationDto> recommendations)
+    [HttpPost("recommendations/{isDelete}")]
+    public async Task<ActionResult> SaveRecommendations([FromBody] IEnumerable<AiRecommendationDto> recommendations, [FromRoute] bool isDelete = false)
     {
         try
         {
-            var savedCount = await _aiService.SaveRecommendationsAsync(recommendations);
+            var savedCount = await _aiService.SaveRecommendationsAsync(recommendations, isDelete);
             return CreatedAtAction(nameof(GetRecommendationViews), new { count = savedCount }, new { saved = savedCount });
         }
         catch (ArgumentException ex)
@@ -38,12 +32,12 @@ public class AiController(AiService aiService) : ControllerBase
             return BadRequest(ex.Message);
         }
     }
-    [HttpPost("mf/recommendations")]
-    public async Task<ActionResult> SaveMFRecommendations([FromBody] IEnumerable<AiRecommendationDto> recommendations)
+    [HttpPost("mf/recommendations/{isDelete}")]
+    public async Task<ActionResult> SaveMFRecommendations([FromBody] IEnumerable<AiRecommendationDto> recommendations, [FromRoute] bool isDelete = false)
     {
         try
         {
-            var savedCount = await _aiService.SaveMFRecommendationsAsync(recommendations);
+            var savedCount = await _aiService.SaveMFRecommendationsAsync(recommendations, isDelete);
             return CreatedAtAction(nameof(GetRecommendationViews), new { count = savedCount }, new { saved = savedCount });
         }
         catch (ArgumentException ex)

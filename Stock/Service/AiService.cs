@@ -11,39 +11,18 @@ public class AiService(AiRepository aiRepository, IWebHostEnvironment environmen
 
     public async Task<IReadOnlyList<AiRecommendationViewEntity>> GetRecommendationViewsAsync(string? assetType = null)
     {
-        if (string.IsNullOrWhiteSpace(assetType))
-        {
-            if (_memoryCache.TryGetValue(RecommendationViewCacheKey, out IReadOnlyList<AiRecommendationViewEntity>? cachedRows) && cachedRows is not null)
-            {
-                return cachedRows;
-            }
+        //_memoryCache.TryGetValue(RecommendationViewCacheKey, out IReadOnlyList<AiRecommendationViewEntity>? cachedRows);
+        //if (cachedRows is not null && cachedRows.Count > 0)
+        //{
+        //    return cachedRows;
+        //}
 
-            var rows = await _aiRepository.GetAiRecommendationViewsAsync(assetType);
-            SetCachedRows(RecommendationViewCacheKey, rows);
-            return rows;
-        }
-
-        if (_memoryCache.TryGetValue(RecommendationViewCacheKey, out IReadOnlyList<AiRecommendationViewEntity>? cachedRowsWithFilter) && cachedRowsWithFilter is not null)
-        {
-            var normalized = assetType.Trim().ToLowerInvariant();
-            return cachedRowsWithFilter.Where(x => x.AssetType == normalized).ToList();
-        }
-
-        return await _aiRepository.GetAiRecommendationViewsAsync(assetType);
+        var rows = await _aiRepository.GetAiRecommendationViewsAsync(assetType);
+        //SetCachedRows(RecommendationViewCacheKey, rows);
+        return rows;
     }
 
-    public async Task<string?> GetFormatJsonAsync()
-    {
-        var templatePath = Path.Combine(_environment.ContentRootPath, "AI", "Template", "Format.json");
-        if (!File.Exists(templatePath))
-        {
-            return null;
-        }
-
-        return await File.ReadAllTextAsync(templatePath);
-    }
-
-    public async Task<int> SaveRecommendationsAsync(IEnumerable<AiRecommendationDto>? recommendations)
+    public async Task<int> SaveRecommendationsAsync(IEnumerable<AiRecommendationDto>? recommendations, bool isDelete)
     {
         if (recommendations is null)
         {
@@ -67,12 +46,12 @@ public class AiService(AiRepository aiRepository, IWebHostEnvironment environmen
             throw new ArgumentException("Request body must contain at least one recommendation.", nameof(recommendations));
         }
 
-        var savedCount = await _aiRepository.SaveAiRecommendationsAsync(entities);
+        var savedCount = await _aiRepository.SaveAiRecommendationsAsync(entities, isDelete);
         _memoryCache.Remove(RecommendationViewCacheKey);
         return savedCount;
     }
 
-    public async Task<int> SaveMFRecommendationsAsync(IEnumerable<AiRecommendationDto>? recommendations)
+    public async Task<int> SaveMFRecommendationsAsync(IEnumerable<AiRecommendationDto>? recommendations, bool isDelete)
     {
         if (recommendations is null)
         {
@@ -95,7 +74,7 @@ public class AiService(AiRepository aiRepository, IWebHostEnvironment environmen
             throw new ArgumentException("Request body must contain at least one recommendation.", nameof(recommendations));
         }
 
-        var savedCount = await _aiRepository.SaveMFAiRecommendationsAsync(entities);
+        var savedCount = await _aiRepository.SaveMFAiRecommendationsAsync(entities, isDelete);
         _memoryCache.Remove(RecommendationViewCacheKey);
         return savedCount;
     }
