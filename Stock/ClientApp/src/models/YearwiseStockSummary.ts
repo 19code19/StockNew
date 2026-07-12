@@ -30,4 +30,13 @@ export interface YearwiseStockSummary {
   indexThreeYearChangePercent: number;
   indexFiveYearChangePercent: number;
   indexName: string;
+  yearHigh: number;
+  yearLow: number;
+  open: number;
+  dayHigh: number;
+  dayLow: number;
+  previousClose: number;
+  closePrice: number;
+  averagePrice: number;
+  basePrice: number;
 }

@@ -45,4 +45,15 @@ public class YearwiseStockSummaryEntity
 
     public string Symbol { get; set; } = string.Empty;
     public string CompanyName { get; set; } = string.Empty;
+    public decimal Open { get; set; }
+    public decimal DayHigh { get; set; }
+    public decimal DayLow { get; set; }
+    public decimal PreviousClose { get; set; }
+    public decimal AveragePrice { get; set; }
+    public decimal BasePrice { get; set; }
+    public decimal ClosePrice { get; set; }
+
+    //PriceInfoEntity
+    public decimal YearHigh { get; set; }
+    public decimal YearLow { get; set; }
 }

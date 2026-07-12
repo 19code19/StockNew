@@ -154,7 +154,16 @@ public class StockRepository(IDbContextFactory<StockDbContext> contextFactory)
                           Sector = s == null ? string.Empty : s.Sector,
                           IndustryInfo = s == null ? string.Empty : s.IndustryInfo,
                           CompanyName = m == null ? string.Empty : m.CompanyName,
-                          Symbol = y.Symbol
+                          Symbol = y.Symbol,
+                          YearHigh = p == null ? 0m : p.YearHigh,
+                          YearLow = p == null ? 0m : p.YearLow,
+                          Open = m == null ? 0m : m.Open,
+                          DayHigh = m == null ? 0m : m.DayHigh,
+                          DayLow = m == null ? 0m : m.DayLow,
+                          PreviousClose = m == null ? 0m : m.PreviousClose,
+                          ClosePrice = m == null ? 0m : m.ClosePrice,
+                          AveragePrice = m == null ? 0m : m.AveragePrice,
+                          BasePrice = m == null ? 0m : m.BasePrice
                       })
                       .AsNoTracking()
                       .ToListAsync();
