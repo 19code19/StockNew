@@ -1,7 +1,7 @@
 import { NavLink } from 'react-router-dom';
 
 const tabs = [
-  { label: 'Symbols', to: '/' },
+  { label: 'Stocks', to: '/' },
   { label: 'Mutual Funds', to: '/mutual-funds' },
   { label: 'AI Rec', to: '/ai-recommendations' },
   { label: 'Favorites', to: '/favorites' },
