@@ -18,7 +18,7 @@ export const defaultGridOptions: GridOptions = {
   loading: false,
   pagination: true,
   paginationPageSize: 100,
-  paginationPageSizeSelector: [20,50, 100, 200, 500, 1000, 2000, 5000],
+  paginationPageSizeSelector: [20, 50, 100, 200, 500, 1000, 2000, 5000],
   rowSelection: {
     mode: 'singleRow',
     enableClickSelection: true,
@@ -27,7 +27,7 @@ export const defaultGridOptions: GridOptions = {
     'ag-row-selected-highlight': (params) => Boolean(params.node.isSelected()),
   },
   overlayLoadingTemplate:
-    '<div class="ag-overlay-loading-center text-slate-100"><div class="rounded-3xl border border-slate-700 bg-slate-950/95 px-6 py-5 shadow-lg shadow-slate-950/40"><div class="mb-3 h-10 w-10 rounded-full border-4 border-slate-700 border-t-sky-300 animate-spin"></div><div class="text-sm font-medium">Loading data...</div></div></div>',
-  overlayNoRowsTemplate:
-    '<div class="ag-overlay-loading-center text-slate-100"><div class="rounded-3xl border border-slate-700 bg-slate-950/95 px-6 py-5 shadow-lg shadow-slate-950/40"><div class="text-sm font-medium">No records found</div></div></div>',
+  '<div class="flex items-center gap-4 text-slate-300"><div class="h-16 w-16 rounded-full border-8 border-slate-600 border-t-sky-400 animate-spin"></div><span class="text-2xl font-semibold">Loading...</span></div>',
+overlayNoRowsTemplate:
+  '<div class="text-2xl font-semibold text-slate-400">No records found</div>',
 };
